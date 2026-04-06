@@ -1,0 +1,3 @@
+# Copy this file to terraform.tfvars and adjust values if needed.
+github_owner    = "y-writings"
+repository_name = "gh-terraform"
