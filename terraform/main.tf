@@ -3,8 +3,9 @@ provider "github" {
 }
 
 import {
-  to = github_repository.this
-  id = var.repository_name
+  for_each = var.import_existing_repository ? toset([var.repository_name]) : toset([])
+  to       = github_repository.this
+  id       = each.value
 }
 
 resource "github_repository" "this" {
