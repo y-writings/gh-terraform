@@ -11,9 +11,8 @@ import {
 resource "github_repository" "this" {
   name = var.repository_name
 
-  has_issues   = true
-  has_projects = true
-  has_wiki     = true
+  has_issues = true
+  has_wiki   = true
 
   allow_merge_commit          = false
   allow_squash_merge          = true
