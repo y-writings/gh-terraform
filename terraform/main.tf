@@ -2,8 +2,17 @@ provider "github" {
   owner = var.github_owner
 }
 
+import {
+  to = github_repository.this
+  id = var.repository_name
+}
+
 resource "github_repository" "this" {
   name = var.repository_name
+
+  has_issues   = true
+  has_projects = true
+  has_wiki     = true
 
   allow_merge_commit          = false
   allow_squash_merge          = true
