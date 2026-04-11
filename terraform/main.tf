@@ -24,7 +24,7 @@ resource "github_repository" "this" {
 
 resource "github_repository_ruleset" "main_default" {
   name        = "main-default"
-  repository  = var.repository_name
+  repository  = github_repository.this.name
   target      = "branch"
   enforcement = "active"
 
