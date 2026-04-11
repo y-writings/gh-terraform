@@ -2,9 +2,35 @@ provider "github" {
   owner = var.github_owner
 }
 
+resource "github_repository" "main" {
+  name        = var.repository_name
+  description = "Repository managed by Terraform"
+  visibility  = "private"
+
+  # Dependabot alerts
+  vulnerability_alerts = false
+
+  security_and_analysis {
+    # GitHub Advanced Security
+    advanced_security {
+      status = "enabled"
+    }
+
+    # Secret Protection
+    secret_scanning {
+      status = "disabled"
+    }
+
+    # Push protection
+    secret_scanning_push_protection {
+      status = "disabled"
+    }
+  }
+}
+
 resource "github_repository_ruleset" "main_default" {
   name        = "main-default"
-  repository  = var.repository_name
+  repository  = github_repository.main.name
   target      = "branch"
   enforcement = "active"
 
