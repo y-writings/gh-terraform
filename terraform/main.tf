@@ -4,7 +4,6 @@ provider "github" {
 
 locals {
   effective_repository_visibility = var.repository_visibility != null ? var.repository_visibility : (var.import_existing_repository ? null : "private")
-  configure_advanced_security     = local.effective_repository_visibility != null && local.effective_repository_visibility != "public"
 }
 
 import {
@@ -22,25 +21,20 @@ resource "github_repository" "this" {
   }
 
   # Dependabot alerts
-  vulnerability_alerts = false
+  vulnerability_alerts = var.import_existing_repository ? null : false
 
-  security_and_analysis {
-    # GitHub Advanced Security
-    dynamic "advanced_security" {
-      for_each = local.configure_advanced_security ? [1] : []
-      content {
-        status = "enabled"
+  dynamic "security_and_analysis" {
+    for_each = var.import_existing_repository ? [] : [1]
+    content {
+      # Secret Protection
+      secret_scanning {
+        status = "disabled"
       }
-    }
 
-    # Secret Protection
-    secret_scanning {
-      status = "disabled"
-    }
-
-    # Push protection
-    secret_scanning_push_protection {
-      status = "disabled"
+      # Push protection
+      secret_scanning_push_protection {
+        status = "disabled"
+      }
     }
   }
 
