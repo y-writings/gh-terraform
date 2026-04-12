@@ -74,6 +74,7 @@ github_owner = "y-writings"
 
 repository_governance = {
   manage_security_and_analysis           = true
+  enable_required_code_scanning          = true
   vulnerability_alerts                   = true
   secret_scanning_status                 = "enabled"
   secret_scanning_push_protection_status = "enabled"
@@ -132,6 +133,7 @@ repositories = {
 ### 各属性の意味
 
 - `repository_governance`: 全リポジトリに一律適用する統制ルール
+- `repository_governance.enable_required_code_scanning`: shared baseline の code scanning requirement を global に有効/無効化するスイッチ
 - `visibility`: `public` / `private`。personal account のため `internal` は扱いません。ただし現在の shared governance baseline は public repository 前提です
 - `import_existing_repository`: 既存 repo を初回 plan/apply 時に import するかどうか
 - `delete_branch_on_merge`: merge 後にブランチを削除するかどうか
@@ -168,4 +170,4 @@ terraform -chdir=terraform apply
 - `evaluate` enforcement は organization ruleset 向けであり、personal account では `active` / `disabled` を使います
 - live baseline の取り込み時は、既存 ruleset を import してから共通 baseline に寄せます
 - GitHub ruleset の `code_quality` ルールは現行 Terraform provider では表現できません。既存 repo にある場合は manual drift として扱い、apply 前後で GitHub 側確認が必要です
-- 現在の `repository_governance` では `security_and_analysis` と `required_code_scanning` を全 repo に一律適用するため、personal account では managed repositories を public 前提で扱います。private repo を扱う場合は repo ごとに分岐させるのではなく、global な `repository_governance` を見直してください
+- 現在の `repository_governance` では `security_and_analysis` と `required_code_scanning` を全 repo に一律適用するため、personal account では managed repositories を public 前提で扱います。private repo を扱う場合は repo ごとに分岐させるのではなく、global に `repository_governance.manage_security_and_analysis = false` と `repository_governance.enable_required_code_scanning = false` を設定してください
