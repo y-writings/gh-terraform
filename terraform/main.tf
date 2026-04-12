@@ -11,6 +11,10 @@ import {
 resource "github_repository" "this" {
   name = var.repository_name
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   has_issues = true
   has_wiki   = true
 
