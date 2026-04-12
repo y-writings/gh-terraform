@@ -71,3 +71,5 @@ terraform -chdir=terraform plan
 既存リポジトリを Terraform 管理に取り込む場合は、`import_existing_repository = true` を明示的に設定してください。Terraform の `import` ブロックにより、初回 plan/apply 時に対象リポジトリ名を使って state に取り込みます。このとき `repository_visibility` を未指定にすると、既存 visibility を維持します。
 
 新規リポジトリを作成する場合は、`repository_visibility` を未指定でも `private` として扱います。必要に応じて `public` / `internal` を明示してください。
+
+このリポジトリの Terraform は基本的に public リポジトリ向けに利用する想定のため、`terraform.tfvars.example` では `repository_visibility = "public"` を明示しています。この設定では `advanced_security` ブロックは出力されません。
