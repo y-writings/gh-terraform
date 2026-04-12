@@ -1,9 +1,61 @@
 # Copy this file to terraform.tfvars and adjust values if needed.
-github_owner    = "y-writings"
-repository_name = "gh-terraform"
+github_owner = "y-writings"
 
-# Enable this only when you want Terraform to import and manage an existing repository.
-import_existing_repository = false
+repositories = {
+  dotfiles = {
+    visibility                   = "public"
+    import_existing_repository   = true
+    manage_security_and_analysis = true
+    delete_branch_on_merge       = true
+    has_wiki                     = false
+    main_default_ruleset_id      = "14686753"
+    required_code_scanning = {
+      tool                      = "CodeQL"
+      alerts_threshold          = "errors_and_warnings"
+      security_alerts_threshold = "high_or_higher"
+    }
+  }
 
-# For the common case of creating a new public repository, uncomment this line.
-# repository_visibility = "public"
+  templates = {
+    visibility                   = "public"
+    import_existing_repository   = true
+    manage_security_and_analysis = true
+    delete_branch_on_merge       = true
+    has_wiki                     = true
+    main_default_ruleset_id      = "14702457"
+    required_code_scanning = {
+      tool                      = "CodeQL"
+      alerts_threshold          = "errors_and_warnings"
+      security_alerts_threshold = "high_or_higher"
+    }
+  }
+
+  container = {
+    visibility                   = "public"
+    import_existing_repository   = true
+    manage_security_and_analysis = true
+    has_wiki                     = true
+  }
+
+  karabiner-config = {
+    visibility                   = "public"
+    import_existing_repository   = true
+    manage_security_and_analysis = true
+    has_wiki                     = false
+    require_last_push_approval   = true
+    main_default_ruleset_id      = "14687410"
+    required_code_scanning = {
+      tool                      = "CodeQL"
+      alerts_threshold          = "errors_and_warnings"
+      security_alerts_threshold = "high_or_higher"
+    }
+  }
+
+  gh-terraform = {
+    visibility                   = "public"
+    import_existing_repository   = true
+    manage_security_and_analysis = true
+    has_wiki                     = true
+    main_default_ruleset_id      = "14959390"
+  }
+}
