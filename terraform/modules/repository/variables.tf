@@ -122,8 +122,8 @@ variable "required_code_scanning" {
   default = null
 
   validation {
-    condition     = var.required_code_scanning == null || contains(["CodeQL"], var.required_code_scanning.tool)
-    error_message = "required_code_scanning.tool must currently be CodeQL."
+    condition     = var.required_code_scanning == null || trimspace(var.required_code_scanning.tool) != ""
+    error_message = "required_code_scanning.tool must be a non-empty string."
   }
 
   validation {

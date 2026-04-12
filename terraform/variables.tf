@@ -83,9 +83,9 @@ variable "repositories" {
 
   validation {
     condition = alltrue([
-      for repository in values(var.repositories) : repository.required_code_scanning == null || contains(["CodeQL"], repository.required_code_scanning.tool)
+      for repository in values(var.repositories) : repository.required_code_scanning == null || trimspace(repository.required_code_scanning.tool) != ""
     ])
-    error_message = "required_code_scanning.tool must currently be CodeQL."
+    error_message = "required_code_scanning.tool must be a non-empty string."
   }
 
   validation {
