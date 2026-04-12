@@ -3,7 +3,8 @@ provider "github" {
 }
 
 locals {
-  configure_advanced_security = var.repository_visibility != null && var.repository_visibility != "public"
+  effective_repository_visibility = var.repository_visibility != null ? var.repository_visibility : (var.import_existing_repository ? null : "private")
+  configure_advanced_security     = local.effective_repository_visibility != null && local.effective_repository_visibility != "public"
 }
 
 import {
@@ -13,9 +14,8 @@ import {
 }
 
 resource "github_repository" "this" {
-  name        = var.repository_name
-  description = "Repository managed by Terraform"
-  visibility  = var.repository_visibility
+  name       = var.repository_name
+  visibility = local.effective_repository_visibility
 
   lifecycle {
     prevent_destroy = true
