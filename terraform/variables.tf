@@ -10,8 +10,14 @@ variable "repository_name" {
   default     = "gh-terraform"
 }
 
+variable "repository_visibility" {
+  description = "Repository visibility (public, private, or internal). Set to null to preserve imported visibility and leave new-repository defaults to the provider/GitHub behavior"
+  type        = string
+  default     = null
+}
+
 variable "import_existing_repository" {
-  description = "Import an existing repository into state before managing settings"
+  description = "Import an existing repository into state before managing settings. Enable this explicitly for existing repositories"
   type        = bool
-  default     = true
+  default     = false
 }

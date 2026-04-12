@@ -9,10 +9,29 @@ import {
 }
 
 resource "github_repository" "this" {
-  name = var.repository_name
+  name       = var.repository_name
+  visibility = var.repository_visibility
 
   lifecycle {
     prevent_destroy = true
+  }
+
+  # Dependabot alerts
+  vulnerability_alerts = var.repository_visibility == null ? null : false
+
+  dynamic "security_and_analysis" {
+    for_each = var.repository_visibility == null ? [] : [1]
+    content {
+      # Secret Protection
+      secret_scanning {
+        status = "disabled"
+      }
+
+      # Push protection
+      secret_scanning_push_protection {
+        status = "disabled"
+      }
+    }
   }
 
   has_issues = true
