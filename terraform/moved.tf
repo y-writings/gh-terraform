@@ -1,9 +1,15 @@
-moved {
+removed {
   from = github_repository.this
-  to   = module.repository["gh-terraform"].github_repository.this
+
+  lifecycle {
+    destroy = false
+  }
 }
 
-moved {
+removed {
   from = github_repository_ruleset.main_default
-  to   = module.repository["gh-terraform"].github_repository_ruleset.main_default
+
+  lifecycle {
+    destroy = false
+  }
 }
