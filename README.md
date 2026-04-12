@@ -1,73 +1,174 @@
 # gh-terraform
 
-GitHub リポジトリの初期設定を Terraform で管理するためのテンプレートです。
+personal account 配下の複数 GitHub リポジトリに、同一の統制ルールを Terraform で適用するための構成です。
 
 ## ディレクトリ構成
 
 ```text
 .
-├── terraform/                  # Terraformコード一式
-│   ├── main.tf                 # GitHub Provider設定と repository / repository ruleset の定義
-│   ├── variables.tf            # github_owner / repository_name などの入力変数
-│   ├── versions.tf             # Terraform本体と GitHub Provider のバージョン制約
-│   └── terraform.tfvars.example
-├── .github/                    # GitHub Actions などのリポジトリ運用設定
-├── .commitlintrc.yaml          # commitlint 設定
-├── lefthook.yaml               # lefthook 設定
-└── release-please-config.json  # release-please 設定
+├── terraform/
+│   ├── main.tf                    # provider / import / module 呼び出し
+│   ├── locals.tf                  # リポジトリ metadata と共通 governance のデフォルト値を導出
+│   ├── moved.tf                   # 旧 single-repo state を安全に state から外す定義
+│   ├── variables.tf               # personal account 向けの入力変数
+│   ├── versions.tf                # Terraform / GitHub provider のバージョン制約
+│   ├── terraform.tfvars.example   # 5 リポジトリ管理のサンプル
+│   ├── modules/
+│   │   └── repository/
+│   │       ├── main.tf            # github_repository / github_repository_ruleset
+│   │       ├── variables.tf
+│   │       ├── outputs.tf
+│   │       └── versions.tf
+├── .github/
+├── .commitlintrc.yaml
+├── lefthook.yaml
+└── release-please-config.json
 ```
 
-## 何を設定するか
+## この構成で管理するもの
 
-- GitHub Provider (`integrations/github`) の有効化
-- `github_repository` によるセキュリティ関連設定
-  - Repository visibility: `repository_visibility` を明示した場合だけ Terraform で管理し、未指定時は既存リポジトリの visibility と新規作成時の provider/GitHub デフォルトに任せる
-  - `repository_visibility` を明示した場合のみ、Dependabot alerts (`vulnerability_alerts`) を `false`、Secret scanning / Push protection を `disabled` に設定
-  - `repository_visibility` 未指定時は、既存リポジトリ import/new create ともにこれらの security 設定は Terraform から変更しない
-- `main`（デフォルトブランチ）向けの `repository ruleset` (`main-default`) 作成
-  - Restrict creations / updates / deletions
-  - Require linear history
-  - Require pull request before merging
-  - Block force pushes
-  - Repository admin ロールを Pull Request のみバイパス可能
+- personal account (`github_owner`) 配下の複数リポジトリ
+- 各 repo 共通の `main-default` repository ruleset
+  - `~DEFAULT_BRANCH` に対する creation / update / deletion 制限
+  - linear history 必須
+  - force push 防止
+  - pull request 必須
+- `github_repository` による repo 設定
+  - visibility
+  - issues / wiki / merge method
+  - Dependabot alerts (`vulnerability_alerts`)
+  - Secret scanning / push protection
 
-## 添付画面との対応状況
+### 現在採用している統一 baseline
 
-Terraform provider (`integrations/github`) でこのテンプレートから直接設定している項目:
+- Repository ruleset (`main-default`)
+  - `~DEFAULT_BRANCH`
+  - Pull request 必須
+  - 承認 1 件必須
+  - squash merge のみ許可
+  - stale review dismissal 有効
+  - review thread resolution 必須
+  - creation / update / deletion 制限
+  - linear history 必須
+  - force push 防止
+  - CodeQL 必須 (`errors_and_warnings` / `high_or_higher`)
+- Security baseline
+  - Dependabot alerts: `enabled`
+  - Secret scanning: `enabled`
+  - Push protection: `enabled`
 
-- Dependabot alerts
-- Secret Protection / Push protection
+## personal account 前提での設計方針
 
-Terraform provider 側で現時点このテンプレートでは未対応（対応 API/リソースが見当たらない、または専用設定が未提供）として扱っている項目:
+- `github_organization_ruleset` は使いません
+- 共通統制は `modules/repository` を `for_each` で展開して適用します
+- 将来 repo を追加するときは `repositories` map に 1 エントリ追加するだけです
+- 共通統制は `repository_governance` で一元管理し、repo ごとの override は持ちません
+- 既存 repo の import は repo ごとの `import_existing_repository` で制御します
+- 既存 `main-default` ruleset を import したいときだけ `main_default_ruleset_id` を設定します
+- `delete_branch_on_merge` と `has_wiki` は governance ではなく repo metadata として repo ごとに保持します
 
-- GitHub Advanced Security の enablement 管理（public は GitHub 側で常時有効、private/internal は org のライセンス構成によって provider 制約を受けるため、このテンプレートでは未設定）
-- Private vulnerability reporting
-- Dependency graph
-- Automatic dependency submission
-- Dependabot malware alerts
-- Grouped security updates
-- Dependabot version updates
-- CodeQL analysis のセットアップ状態
-- Copilot Autofix
-- Protection rules (check runs failure threshold)
+## 入力例
+
+```hcl
+github_owner = "y-writings"
+
+repository_governance = {
+  manage_security_and_analysis           = true
+  enable_required_code_scanning          = true
+  vulnerability_alerts                   = true
+  secret_scanning_status                 = "enabled"
+  secret_scanning_push_protection_status = "enabled"
+  ruleset_enforcement                    = "active"
+  required_approving_review_count        = 1
+  dismiss_stale_reviews_on_push          = true
+  require_code_owner_review              = false
+  require_last_push_approval             = false
+  required_review_thread_resolution      = true
+  required_code_scanning = {
+    tool                      = "CodeQL"
+    alerts_threshold          = "errors_and_warnings"
+    security_alerts_threshold = "high_or_higher"
+  }
+}
+
+repositories = {
+  dotfiles = {
+    visibility                 = "public"
+    import_existing_repository = true
+    delete_branch_on_merge     = true
+    has_wiki                   = false
+    main_default_ruleset_id    = "14686753"
+  }
+
+  templates = {
+    visibility                 = "public"
+    import_existing_repository = true
+    delete_branch_on_merge     = true
+    has_wiki                   = true
+    main_default_ruleset_id    = "14702457"
+  }
+
+  container = {
+    visibility                 = "public"
+    import_existing_repository = true
+    has_wiki                   = true
+  }
+
+  karabiner-config = {
+    visibility                 = "public"
+    import_existing_repository = true
+    has_wiki                   = false
+    main_default_ruleset_id    = "14687410"
+  }
+
+  gh-terraform = {
+    visibility                 = "public"
+    import_existing_repository = true
+    has_wiki                   = true
+    main_default_ruleset_id    = "14959390"
+  }
+}
+```
+
+### 各属性の意味
+
+- `repository_governance`: 全リポジトリに一律適用する統制ルール
+- `repository_governance.enable_required_code_scanning`: shared baseline の code scanning requirement を global に有効/無効化するスイッチ
+- `visibility`: `public` / `private`。personal account のため `internal` は扱いません。ただし現在の shared governance baseline は public repository 前提です
+- `import_existing_repository`: 既存 repo を初回 plan/apply 時に import するかどうか
+- `delete_branch_on_merge`: merge 後にブランチを削除するかどうか
+- `has_wiki`: repo ごとの wiki 有効/無効
+- `main_default_ruleset_id`: 既存 `main-default` ruleset を import したい場合の ruleset ID
 
 ## 使い方
 
-1. 必要に応じて `terraform/terraform.tfvars.example` を `terraform/terraform.tfvars` にコピーして値を調整します。
-2. GitHub トークンを環境変数として設定します。
-3. 既存リポジトリを管理対象にする場合だけ、`terraform/terraform.tfvars` で `import_existing_repository = true` を設定します。
-4. `terraform plan` で差分を確認し、問題なければ apply します。
+1. `terraform/terraform.tfvars.example` を `terraform/terraform.tfvars` にコピーして調整します
+2. `GITHUB_TOKEN` を設定します
+3. `repository_governance` で統一したい統制ルールを定義します
+4. 既存 repo を取り込む場合は対象 repo の `import_existing_repository = true` を設定します
+5. 既存 `main-default` ruleset も state に載せたい場合は `main_default_ruleset_id` を設定します
+6. `terraform plan` で差分を確認し、問題なければ apply します
 
 ```bash
 export GITHUB_TOKEN="<your-token>"
 terraform -chdir=terraform init
 terraform -chdir=terraform plan
+terraform -chdir=terraform apply
 ```
 
-デフォルト設定では `import_existing_repository = false` のため、既存リポジトリを誤って import してセキュリティ設定を変更しないようにしています。
+## 既存 state の移行
 
-既存リポジトリを Terraform 管理に取り込む場合は、`import_existing_repository = true` を明示的に設定してください。Terraform の `import` ブロックにより、初回 plan/apply 時に対象リポジトリ名を使って state に取り込みます。このとき `repository_visibility` を未指定にすると、既存 visibility と既存 security 設定を維持します。
+- 旧 single-repo 構成の `github_repository.this` / `github_repository_ruleset.main_default` は `moved.tf` の `removed { destroy = false }` で state から安全に外します
+- repository 本体は import block で state へ取り込みます
+- 既存 `main-default` ruleset を持つ repo は `main_default_ruleset_id` を設定して import します
+- つまり migration は「hard-coded moved」ではなく「old root state を remove → current module addresses へ import」で repository 名に依存せず行います
+- この構成では governance の repo ごと override は持たないため、plan では統一 baseline への収束差分が出ます
 
-新規リポジトリを作成する場合に public リポジトリとして運用したいなら、`repository_visibility = "public"` を明示してください。`repository_visibility` を未指定にした場合の visibility は provider/GitHub のデフォルトに従い、このテンプレートは visibility や security 設定を明示的には変更しません。
+## provider 上の制約メモ
 
-このリポジトリの Terraform は基本的に public リポジトリ向けに利用する想定です。そのため `terraform.tfvars.example` には import-safe な最小構成だけを置き、public リポジトリを新規作成する場合だけ `repository_visibility = "public"` を追加する形にしています。`import_existing_repository` は import ブロックを有効化するための一時スイッチであり、visibility の desired state そのものは `repository_visibility` で表現します。
+- `github_repository_ruleset` は repo 単位 resource のため、personal account では `for_each` で横展開します
+- `github_repository_ruleset` の import は `<repository>:<ruleset_id>` 形式です
+- `evaluate` enforcement は organization ruleset 向けであり、personal account では `active` / `disabled` を使います
+- live baseline の取り込み時は、既存 ruleset を import してから共通 baseline に寄せます
+- GitHub ruleset の `code_quality` ルールは現行 Terraform provider では表現できません。既存 repo にある場合は manual drift として扱い、apply 前後で GitHub 側確認が必要です
+- 現在の `repository_governance` では `security_and_analysis` と `required_code_scanning` を全 repo に一律適用するため、personal account では managed repositories を public 前提で扱います。private repo を扱う場合は repo ごとに分岐させるのではなく、global に `repository_governance.manage_security_and_analysis = false` と `repository_governance.enable_required_code_scanning = false` を設定してください
