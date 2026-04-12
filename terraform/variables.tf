@@ -17,7 +17,7 @@ variable "repository_visibility" {
 }
 
 variable "import_existing_repository" {
-  description = "Import an existing repository into state before managing settings"
+  description = "Import an existing repository into state before managing settings. Enable this explicitly for existing repositories"
   type        = bool
-  default     = true
+  default     = false
 }
