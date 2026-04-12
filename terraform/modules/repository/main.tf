@@ -61,7 +61,7 @@ resource "github_repository_ruleset" "main_default" {
 
     pull_request {
       required_approving_review_count   = var.required_approving_review_count
-      allowed_merge_methods             = var.allowed_merge_methods
+      allowed_merge_methods             = ["squash"]
       dismiss_stale_reviews_on_push     = var.dismiss_stale_reviews_on_push
       require_code_owner_review         = var.require_code_owner_review
       require_last_push_approval        = var.require_last_push_approval

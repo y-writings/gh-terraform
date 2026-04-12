@@ -1,61 +1,58 @@
 # Copy this file to terraform.tfvars and adjust values if needed.
 github_owner = "y-writings"
 
+repository_governance = {
+  manage_security_and_analysis           = true
+  vulnerability_alerts                   = true
+  secret_scanning_status                 = "enabled"
+  secret_scanning_push_protection_status = "enabled"
+  ruleset_enforcement                    = "active"
+  required_approving_review_count        = 1
+  dismiss_stale_reviews_on_push          = true
+  require_code_owner_review              = false
+  require_last_push_approval             = false
+  required_review_thread_resolution      = true
+  required_code_scanning = {
+    tool                      = "CodeQL"
+    alerts_threshold          = "errors_and_warnings"
+    security_alerts_threshold = "high_or_higher"
+  }
+}
+
 repositories = {
   dotfiles = {
-    visibility                   = "public"
-    import_existing_repository   = true
-    manage_security_and_analysis = true
-    delete_branch_on_merge       = true
-    has_wiki                     = false
-    main_default_ruleset_id      = "14686753"
-    required_code_scanning = {
-      tool                      = "CodeQL"
-      alerts_threshold          = "errors_and_warnings"
-      security_alerts_threshold = "high_or_higher"
-    }
+    visibility                 = "public"
+    import_existing_repository = true
+    delete_branch_on_merge     = true
+    has_wiki                   = false
+    main_default_ruleset_id    = "14686753"
   }
 
   templates = {
-    visibility                   = "public"
-    import_existing_repository   = true
-    manage_security_and_analysis = true
-    delete_branch_on_merge       = true
-    has_wiki                     = true
-    main_default_ruleset_id      = "14702457"
-    required_code_scanning = {
-      tool                      = "CodeQL"
-      alerts_threshold          = "errors_and_warnings"
-      security_alerts_threshold = "high_or_higher"
-    }
+    visibility                 = "public"
+    import_existing_repository = true
+    delete_branch_on_merge     = true
+    has_wiki                   = true
+    main_default_ruleset_id    = "14702457"
   }
 
   container = {
-    visibility                   = "public"
-    import_existing_repository   = true
-    manage_security_and_analysis = true
-    has_wiki                     = true
+    visibility                 = "public"
+    import_existing_repository = true
+    has_wiki                   = true
   }
 
   karabiner-config = {
-    visibility                   = "public"
-    import_existing_repository   = true
-    manage_security_and_analysis = true
-    has_wiki                     = false
-    require_last_push_approval   = true
-    main_default_ruleset_id      = "14687410"
-    required_code_scanning = {
-      tool                      = "CodeQL"
-      alerts_threshold          = "errors_and_warnings"
-      security_alerts_threshold = "high_or_higher"
-    }
+    visibility                 = "public"
+    import_existing_repository = true
+    has_wiki                   = false
+    main_default_ruleset_id    = "14687410"
   }
 
   gh-terraform = {
-    visibility                   = "public"
-    import_existing_repository   = true
-    manage_security_and_analysis = true
-    has_wiki                     = true
-    main_default_ruleset_id      = "14959390"
+    visibility                 = "public"
+    import_existing_repository = true
+    has_wiki                   = true
+    main_default_ruleset_id    = "14959390"
   }
 }
