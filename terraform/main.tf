@@ -5,7 +5,7 @@ provider "github" {
 resource "github_repository" "main" {
   name        = var.repository_name
   description = "Repository managed by Terraform"
-  visibility  = "private"
+  visibility  = var.repository_visibility
 
   # Dependabot alerts
   vulnerability_alerts = false

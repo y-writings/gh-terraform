@@ -9,3 +9,9 @@ variable "repository_name" {
   type        = string
   default     = "gh-terraform"
 }
+
+variable "repository_visibility" {
+  description = "Repository visibility (public, private, or internal). Set to null to preserve the current visibility for imported repositories"
+  type        = string
+  default     = null
+}
