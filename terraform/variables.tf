@@ -90,9 +90,9 @@ variable "repositories" {
 
   validation {
     condition = alltrue([
-      for repository in values(var.repositories) : repository.required_code_scanning == null || contains(["errors", "errors_and_warnings", "all"], repository.required_code_scanning.alerts_threshold)
+      for repository in values(var.repositories) : repository.required_code_scanning == null || contains(["none", "errors", "errors_and_warnings", "all"], repository.required_code_scanning.alerts_threshold)
     ])
-    error_message = "required_code_scanning.alerts_threshold must be errors, errors_and_warnings, or all."
+    error_message = "required_code_scanning.alerts_threshold must be none, errors, errors_and_warnings, or all."
   }
 
   validation {

@@ -127,8 +127,8 @@ variable "required_code_scanning" {
   }
 
   validation {
-    condition     = var.required_code_scanning == null || contains(["errors", "errors_and_warnings", "all"], var.required_code_scanning.alerts_threshold)
-    error_message = "required_code_scanning.alerts_threshold must be errors, errors_and_warnings, or all."
+    condition     = var.required_code_scanning == null || contains(["none", "errors", "errors_and_warnings", "all"], var.required_code_scanning.alerts_threshold)
+    error_message = "required_code_scanning.alerts_threshold must be none, errors, errors_and_warnings, or all."
   }
 
   validation {
