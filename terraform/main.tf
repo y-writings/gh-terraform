@@ -2,10 +2,6 @@ provider "github" {
   owner = var.github_owner
 }
 
-locals {
-  effective_repository_visibility = var.repository_visibility != null ? var.repository_visibility : (var.import_existing_repository ? null : "private")
-}
-
 import {
   for_each = var.import_existing_repository ? toset([var.repository_name]) : toset([])
   to       = github_repository.this
@@ -14,17 +10,17 @@ import {
 
 resource "github_repository" "this" {
   name       = var.repository_name
-  visibility = local.effective_repository_visibility
+  visibility = var.repository_visibility
 
   lifecycle {
     prevent_destroy = true
   }
 
   # Dependabot alerts
-  vulnerability_alerts = var.import_existing_repository ? null : false
+  vulnerability_alerts = var.repository_visibility == null ? null : false
 
   dynamic "security_and_analysis" {
-    for_each = var.import_existing_repository ? [] : [1]
+    for_each = var.repository_visibility == null ? [] : [1]
     content {
       # Secret Protection
       secret_scanning {

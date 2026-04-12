@@ -11,7 +11,7 @@ variable "repository_name" {
 }
 
 variable "repository_visibility" {
-  description = "Repository visibility (public, private, or internal). Set to null to preserve imported visibility; new repositories default to private"
+  description = "Repository visibility (public, private, or internal). Set to null to preserve imported visibility and leave new-repository defaults to the provider/GitHub behavior"
   type        = string
   default     = null
 }
