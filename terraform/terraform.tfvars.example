@@ -3,6 +3,7 @@ github_owner = "y-writings"
 
 repository_governance = {
   manage_security_and_analysis           = true
+  enable_required_code_scanning          = true
   vulnerability_alerts                   = true
   secret_scanning_status                 = "enabled"
   secret_scanning_push_protection_status = "enabled"

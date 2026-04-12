@@ -9,6 +9,7 @@ locals {
 
   repository_governance_defaults = {
     manage_security_and_analysis           = true
+    enable_required_code_scanning          = true
     vulnerability_alerts                   = true
     secret_scanning_status                 = "enabled"
     secret_scanning_push_protection_status = "enabled"
@@ -25,8 +26,14 @@ locals {
     }
   }
 
+  repository_governance_enable_required_code_scanning = coalesce(
+    var.repository_governance.enable_required_code_scanning,
+    local.repository_governance_defaults.enable_required_code_scanning,
+  )
+
   repository_governance = {
     manage_security_and_analysis           = coalesce(var.repository_governance.manage_security_and_analysis, local.repository_governance_defaults.manage_security_and_analysis)
+    enable_required_code_scanning          = local.repository_governance_enable_required_code_scanning
     vulnerability_alerts                   = coalesce(var.repository_governance.vulnerability_alerts, local.repository_governance_defaults.vulnerability_alerts)
     secret_scanning_status                 = coalesce(var.repository_governance.secret_scanning_status, local.repository_governance_defaults.secret_scanning_status)
     secret_scanning_push_protection_status = coalesce(var.repository_governance.secret_scanning_push_protection_status, local.repository_governance_defaults.secret_scanning_push_protection_status)
@@ -36,7 +43,7 @@ locals {
     require_code_owner_review              = coalesce(var.repository_governance.require_code_owner_review, local.repository_governance_defaults.require_code_owner_review)
     require_last_push_approval             = coalesce(var.repository_governance.require_last_push_approval, local.repository_governance_defaults.require_last_push_approval)
     required_review_thread_resolution      = coalesce(var.repository_governance.required_review_thread_resolution, local.repository_governance_defaults.required_review_thread_resolution)
-    required_code_scanning                 = var.repository_governance.required_code_scanning != null ? var.repository_governance.required_code_scanning : local.repository_governance_defaults.required_code_scanning
+    required_code_scanning                 = local.repository_governance_enable_required_code_scanning ? (var.repository_governance.required_code_scanning != null ? var.repository_governance.required_code_scanning : local.repository_governance_defaults.required_code_scanning) : null
   }
 
   repositories = {

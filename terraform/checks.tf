@@ -7,6 +7,6 @@ check "shared_governance_requires_public_repositories" {
         for repository in values(local.repositories) : repository.visibility == "public"
     ])
 
-    error_message = "The current shared repository_governance baseline assumes public repositories when security_and_analysis or required_code_scanning is enabled. For personal accounts, set every managed repository visibility to public or change the global repository_governance baseline before applying."
+    error_message = "The current shared repository_governance baseline assumes public repositories when security_and_analysis or required_code_scanning is enabled. For personal accounts, either set every managed repository visibility to public or globally disable both repository_governance.manage_security_and_analysis and repository_governance.enable_required_code_scanning before applying."
   }
 }

@@ -27,6 +27,7 @@ variable "repository_governance" {
   description = "Shared governance controls applied uniformly to all managed repositories"
   type = object({
     manage_security_and_analysis           = optional(bool)
+    enable_required_code_scanning          = optional(bool)
     vulnerability_alerts                   = optional(bool)
     secret_scanning_status                 = optional(string)
     secret_scanning_push_protection_status = optional(string)
@@ -67,6 +68,11 @@ variable "repository_governance" {
   validation {
     condition     = var.repository_governance.required_approving_review_count == null || floor(var.repository_governance.required_approving_review_count) == var.repository_governance.required_approving_review_count
     error_message = "repository_governance.required_approving_review_count must be an integer."
+  }
+
+  validation {
+    condition     = coalesce(var.repository_governance.enable_required_code_scanning, true) || var.repository_governance.required_code_scanning == null
+    error_message = "repository_governance.required_code_scanning must be null or omitted when repository_governance.enable_required_code_scanning is false."
   }
 
   validation {
