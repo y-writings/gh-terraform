@@ -3,75 +3,35 @@ provider "github" {
 }
 
 import {
-  for_each = var.import_existing_repository ? toset([var.repository_name]) : toset([])
-  to       = github_repository.this
-  id       = each.value
+  for_each = local.repositories_to_import
+  to       = module.repository[each.key].github_repository.this
+  id       = each.key
 }
 
-resource "github_repository" "this" {
-  name       = var.repository_name
-  visibility = var.repository_visibility
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  # Dependabot alerts
-  vulnerability_alerts = var.repository_visibility == null ? null : false
-
-  dynamic "security_and_analysis" {
-    for_each = var.repository_visibility == null ? [] : [1]
-    content {
-      # Secret Protection
-      secret_scanning {
-        status = "disabled"
-      }
-
-      # Push protection
-      secret_scanning_push_protection {
-        status = "disabled"
-      }
-    }
-  }
-
-  has_issues = true
-  has_wiki   = true
-
-  allow_merge_commit          = false
-  allow_squash_merge          = true
-  squash_merge_commit_title   = "PR_TITLE"
-  squash_merge_commit_message = "PR_BODY"
-  allow_rebase_merge          = false
+import {
+  for_each = local.rulesets_to_import
+  to       = module.repository[each.key].github_repository_ruleset.main_default
+  id       = "${each.key}:${each.value.main_default_ruleset_id}"
 }
 
-resource "github_repository_ruleset" "main_default" {
-  name        = "main-default"
-  repository  = github_repository.this.name
-  target      = "branch"
-  enforcement = "active"
+module "repository" {
+  source   = "./modules/repository"
+  for_each = local.repositories
 
-  bypass_actors {
-    actor_id    = 5
-    actor_type  = "RepositoryRole"
-    bypass_mode = "pull_request"
-  }
-
-  conditions {
-    ref_name {
-      include = ["~DEFAULT_BRANCH"]
-      exclude = []
-    }
-  }
-
-  rules {
-    creation                = true
-    deletion                = true
-    update                  = true
-    required_linear_history = true
-    non_fast_forward        = true
-
-    pull_request {
-      required_approving_review_count = 0
-    }
-  }
+  repository_name                        = each.key
+  repository_visibility                  = each.value.visibility
+  manage_security_and_analysis           = each.value.manage_security_and_analysis
+  vulnerability_alerts                   = each.value.vulnerability_alerts
+  secret_scanning_status                 = each.value.secret_scanning_status
+  secret_scanning_push_protection_status = each.value.secret_scanning_push_protection_status
+  delete_branch_on_merge                 = each.value.delete_branch_on_merge
+  has_wiki                               = each.value.has_wiki
+  ruleset_enforcement                    = each.value.ruleset_enforcement
+  required_approving_review_count        = each.value.required_approving_review_count
+  allowed_merge_methods                  = each.value.allowed_merge_methods
+  dismiss_stale_reviews_on_push          = each.value.dismiss_stale_reviews_on_push
+  require_code_owner_review              = each.value.require_code_owner_review
+  require_last_push_approval             = each.value.require_last_push_approval
+  required_review_thread_resolution      = each.value.required_review_thread_resolution
+  required_code_scanning                 = each.value.required_code_scanning
 }
