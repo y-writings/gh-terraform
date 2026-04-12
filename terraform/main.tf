@@ -6,10 +6,20 @@ locals {
   configure_advanced_security = var.repository_visibility != null && var.repository_visibility != "public"
 }
 
-resource "github_repository" "main" {
+import {
+  for_each = var.import_existing_repository ? toset([var.repository_name]) : toset([])
+  to       = github_repository.this
+  id       = each.value
+}
+
+resource "github_repository" "this" {
   name        = var.repository_name
   description = "Repository managed by Terraform"
   visibility  = var.repository_visibility
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   # Dependabot alerts
   vulnerability_alerts = false
@@ -33,11 +43,20 @@ resource "github_repository" "main" {
       status = "disabled"
     }
   }
+
+  has_issues = true
+  has_wiki   = true
+
+  allow_merge_commit          = false
+  allow_squash_merge          = true
+  squash_merge_commit_title   = "PR_TITLE"
+  squash_merge_commit_message = "PR_BODY"
+  allow_rebase_merge          = false
 }
 
 resource "github_repository_ruleset" "main_default" {
   name        = "main-default"
-  repository  = github_repository.main.name
+  repository  = github_repository.this.name
   target      = "branch"
   enforcement = "active"
 

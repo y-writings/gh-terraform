@@ -15,3 +15,9 @@ variable "repository_visibility" {
   type        = string
   default     = null
 }
+
+variable "import_existing_repository" {
+  description = "Import an existing repository into state before managing settings"
+  type        = bool
+  default     = true
+}
