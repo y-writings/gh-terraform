@@ -60,7 +60,7 @@ variable "ruleset_enforcement" {
 }
 
 variable "required_approving_review_count" {
-  description = "Required approving review count for the main-default ruleset"
+  description = "Required approving review count for the shared main-default ruleset"
   type        = number
   default     = 1
 
@@ -75,45 +75,32 @@ variable "required_approving_review_count" {
   }
 }
 
-variable "allowed_merge_methods" {
-  description = "Allowed merge methods for the main-default ruleset pull_request rule"
-  type        = list(string)
-  default     = ["squash"]
-
-  validation {
-    condition = alltrue([
-      for method in var.allowed_merge_methods : contains(["merge", "squash", "rebase"], method)
-    ])
-    error_message = "allowed_merge_methods must contain only merge, squash, or rebase."
-  }
-}
-
 variable "dismiss_stale_reviews_on_push" {
-  description = "Dismiss stale reviews when new commits are pushed"
+  description = "Dismiss stale reviews when new commits are pushed in the shared ruleset"
   type        = bool
   default     = true
 }
 
 variable "require_code_owner_review" {
-  description = "Require code owner review for the main-default ruleset"
+  description = "Require code owner review for the shared main-default ruleset"
   type        = bool
   default     = false
 }
 
 variable "require_last_push_approval" {
-  description = "Require last push approval for the main-default ruleset"
+  description = "Require last push approval for the shared main-default ruleset"
   type        = bool
   default     = false
 }
 
 variable "required_review_thread_resolution" {
-  description = "Require all review threads to be resolved before merge"
+  description = "Require all review threads to be resolved before merge in the shared ruleset"
   type        = bool
   default     = true
 }
 
 variable "required_code_scanning" {
-  description = "Optional code scanning requirement for the main-default ruleset"
+  description = "Optional code scanning requirement for the shared main-default ruleset"
   type = object({
     tool                      = string
     alerts_threshold          = string
