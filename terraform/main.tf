@@ -2,6 +2,10 @@ provider "github" {
   owner = var.github_owner
 }
 
+locals {
+  configure_advanced_security = var.repository_visibility != null && var.repository_visibility != "public"
+}
+
 resource "github_repository" "main" {
   name        = var.repository_name
   description = "Repository managed by Terraform"
@@ -12,8 +16,11 @@ resource "github_repository" "main" {
 
   security_and_analysis {
     # GitHub Advanced Security
-    advanced_security {
-      status = "enabled"
+    dynamic "advanced_security" {
+      for_each = local.configure_advanced_security ? [1] : []
+      content {
+        status = "enabled"
+      }
     }
 
     # Secret Protection
