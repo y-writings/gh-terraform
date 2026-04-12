@@ -1,7 +1,9 @@
 # Copy this file to terraform.tfvars and adjust values if needed.
 github_owner    = "y-writings"
 repository_name = "gh-terraform"
-repository_visibility = "public"
 
 # Enable this only when you want Terraform to import and manage an existing repository.
 import_existing_repository = false
+
+# For the common case of creating a new public repository, uncomment this line.
+# repository_visibility = "public"
