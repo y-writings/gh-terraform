@@ -18,14 +18,8 @@ module "general" {
   source   = "./modules/general"
   for_each = local.repositories
 
-  has_wiki                    = each.value.has_wiki
-  has_issues                  = true
-  allow_merge_commit          = false
-  allow_squash_merge          = true
-  squash_merge_commit_title   = "PR_TITLE"
-  squash_merge_commit_message = "PR_BODY"
-  allow_rebase_merge          = false
-  delete_branch_on_merge      = each.value.delete_branch_on_merge
+  has_wiki               = each.value.has_wiki
+  delete_branch_on_merge = each.value.delete_branch_on_merge
 }
 
 module "advanced_security" {
