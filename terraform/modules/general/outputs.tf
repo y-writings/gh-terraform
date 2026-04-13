@@ -1,15 +1,17 @@
 locals {
+  has_wiki                    = true
   has_issues                  = true
   allow_merge_commit          = false
   allow_squash_merge          = true
   squash_merge_commit_title   = "PR_TITLE"
   squash_merge_commit_message = "PR_BODY"
   allow_rebase_merge          = false
+  delete_branch_on_merge      = false
 }
 
 output "has_wiki" {
   description = "Whether the repository wiki is enabled"
-  value       = var.has_wiki
+  value       = local.has_wiki
 }
 
 output "has_issues" {
@@ -44,5 +46,5 @@ output "allow_rebase_merge" {
 
 output "delete_branch_on_merge" {
   description = "Delete the branch on merge setting for the repository"
-  value       = var.delete_branch_on_merge
+  value       = local.delete_branch_on_merge
 }
