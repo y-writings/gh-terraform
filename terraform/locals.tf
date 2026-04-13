@@ -8,17 +8,13 @@ locals {
   }
 
   repository_governance_defaults = {
-    manage_security_and_analysis           = true
-    enable_required_code_scanning          = true
-    vulnerability_alerts                   = true
-    secret_scanning_status                 = "enabled"
-    secret_scanning_push_protection_status = "enabled"
-    ruleset_enforcement                    = "active"
-    required_approving_review_count        = 1
-    dismiss_stale_reviews_on_push          = true
-    require_code_owner_review              = false
-    require_last_push_approval             = false
-    required_review_thread_resolution      = true
+    enable_required_code_scanning     = true
+    ruleset_enforcement               = "active"
+    required_approving_review_count   = 1
+    dismiss_stale_reviews_on_push     = true
+    require_code_owner_review         = false
+    require_last_push_approval        = false
+    required_review_thread_resolution = true
     required_code_scanning = {
       tool                      = "CodeQL"
       alerts_threshold          = "errors_and_warnings"
@@ -32,18 +28,14 @@ locals {
   )
 
   repository_governance = {
-    manage_security_and_analysis           = coalesce(var.repository_governance.manage_security_and_analysis, local.repository_governance_defaults.manage_security_and_analysis)
-    enable_required_code_scanning          = local.repository_governance_enable_required_code_scanning
-    vulnerability_alerts                   = coalesce(var.repository_governance.vulnerability_alerts, local.repository_governance_defaults.vulnerability_alerts)
-    secret_scanning_status                 = coalesce(var.repository_governance.secret_scanning_status, local.repository_governance_defaults.secret_scanning_status)
-    secret_scanning_push_protection_status = coalesce(var.repository_governance.secret_scanning_push_protection_status, local.repository_governance_defaults.secret_scanning_push_protection_status)
-    ruleset_enforcement                    = coalesce(var.repository_governance.ruleset_enforcement, local.repository_governance_defaults.ruleset_enforcement)
-    required_approving_review_count        = coalesce(var.repository_governance.required_approving_review_count, local.repository_governance_defaults.required_approving_review_count)
-    dismiss_stale_reviews_on_push          = coalesce(var.repository_governance.dismiss_stale_reviews_on_push, local.repository_governance_defaults.dismiss_stale_reviews_on_push)
-    require_code_owner_review              = coalesce(var.repository_governance.require_code_owner_review, local.repository_governance_defaults.require_code_owner_review)
-    require_last_push_approval             = coalesce(var.repository_governance.require_last_push_approval, local.repository_governance_defaults.require_last_push_approval)
-    required_review_thread_resolution      = coalesce(var.repository_governance.required_review_thread_resolution, local.repository_governance_defaults.required_review_thread_resolution)
-    required_code_scanning                 = local.repository_governance_enable_required_code_scanning ? (var.repository_governance.required_code_scanning != null ? var.repository_governance.required_code_scanning : local.repository_governance_defaults.required_code_scanning) : null
+    enable_required_code_scanning     = local.repository_governance_enable_required_code_scanning
+    ruleset_enforcement               = coalesce(var.repository_governance.ruleset_enforcement, local.repository_governance_defaults.ruleset_enforcement)
+    required_approving_review_count   = coalesce(var.repository_governance.required_approving_review_count, local.repository_governance_defaults.required_approving_review_count)
+    dismiss_stale_reviews_on_push     = coalesce(var.repository_governance.dismiss_stale_reviews_on_push, local.repository_governance_defaults.dismiss_stale_reviews_on_push)
+    require_code_owner_review         = coalesce(var.repository_governance.require_code_owner_review, local.repository_governance_defaults.require_code_owner_review)
+    require_last_push_approval        = coalesce(var.repository_governance.require_last_push_approval, local.repository_governance_defaults.require_last_push_approval)
+    required_review_thread_resolution = coalesce(var.repository_governance.required_review_thread_resolution, local.repository_governance_defaults.required_review_thread_resolution)
+    required_code_scanning            = local.repository_governance_enable_required_code_scanning ? (var.repository_governance.required_code_scanning != null ? var.repository_governance.required_code_scanning : local.repository_governance_defaults.required_code_scanning) : null
   }
 
   repositories = {

@@ -29,13 +29,7 @@ module "general" {
 }
 
 module "advanced_security" {
-  source   = "./modules/advanced_security"
-  for_each = local.repositories
-
-  manage_security_and_analysis           = local.repository_governance.manage_security_and_analysis
-  vulnerability_alerts                   = local.repository_governance.vulnerability_alerts
-  secret_scanning_status                 = local.repository_governance.secret_scanning_status
-  secret_scanning_push_protection_status = local.repository_governance.secret_scanning_push_protection_status
+  source = "./modules/advanced_security"
 }
 
 resource "github_repository" "this" {
@@ -48,17 +42,17 @@ resource "github_repository" "this" {
     prevent_destroy = true
   }
 
-  vulnerability_alerts = module.advanced_security[each.key].manage_security_and_analysis ? module.advanced_security[each.key].vulnerability_alerts : null
+  vulnerability_alerts = module.advanced_security.manage_security_and_analysis ? module.advanced_security.vulnerability_alerts : null
 
   dynamic "security_and_analysis" {
-    for_each = module.advanced_security[each.key].manage_security_and_analysis ? [1] : []
+    for_each = module.advanced_security.manage_security_and_analysis ? [1] : []
     content {
       secret_scanning {
-        status = module.advanced_security[each.key].secret_scanning_status
+        status = module.advanced_security.secret_scanning_status
       }
 
       secret_scanning_push_protection {
-        status = module.advanced_security[each.key].secret_scanning_push_protection_status
+        status = module.advanced_security.secret_scanning_push_protection_status
       }
     }
   }
