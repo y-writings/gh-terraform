@@ -15,11 +15,7 @@ import {
 }
 
 module "general" {
-  source   = "./modules/general"
-  for_each = local.repositories
-
-  has_wiki               = each.value.has_wiki
-  delete_branch_on_merge = each.value.delete_branch_on_merge
+  source = "./modules/general"
 }
 
 module "advanced_security" {
@@ -51,16 +47,16 @@ resource "github_repository" "this" {
     }
   }
 
-  has_issues = module.general[each.key].has_issues
-  has_wiki   = module.general[each.key].has_wiki
+  has_issues = module.general.has_issues
+  has_wiki   = module.general.has_wiki
 
-  delete_branch_on_merge = module.general[each.key].delete_branch_on_merge
+  delete_branch_on_merge = module.general.delete_branch_on_merge
 
-  allow_merge_commit          = module.general[each.key].allow_merge_commit
-  allow_squash_merge          = module.general[each.key].allow_squash_merge
-  squash_merge_commit_title   = module.general[each.key].squash_merge_commit_title
-  squash_merge_commit_message = module.general[each.key].squash_merge_commit_message
-  allow_rebase_merge          = module.general[each.key].allow_rebase_merge
+  allow_merge_commit          = module.general.allow_merge_commit
+  allow_squash_merge          = module.general.allow_squash_merge
+  squash_merge_commit_title   = module.general.squash_merge_commit_title
+  squash_merge_commit_message = module.general.squash_merge_commit_message
+  allow_rebase_merge          = module.general.allow_rebase_merge
 }
 
 module "rulesets" {

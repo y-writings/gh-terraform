@@ -9,8 +9,6 @@ variable "repositories" {
   type = map(object({
     visibility                 = optional(string)
     import_existing_repository = optional(bool)
-    delete_branch_on_merge     = optional(bool)
-    has_wiki                   = optional(bool)
     main_default_ruleset_id    = optional(string)
   }))
 

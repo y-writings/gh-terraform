@@ -2,8 +2,6 @@ locals {
   repository_defaults = {
     visibility                 = null
     import_existing_repository = false
-    delete_branch_on_merge     = false
-    has_wiki                   = true
     main_default_ruleset_id    = null
   }
 
@@ -43,8 +41,6 @@ locals {
     name => {
       visibility                 = config.visibility != null ? config.visibility : local.repository_defaults.visibility
       import_existing_repository = coalesce(config.import_existing_repository, local.repository_defaults.import_existing_repository)
-      delete_branch_on_merge     = coalesce(config.delete_branch_on_merge, local.repository_defaults.delete_branch_on_merge)
-      has_wiki                   = coalesce(config.has_wiki, local.repository_defaults.has_wiki)
       main_default_ruleset_id    = config.main_default_ruleset_id != null ? config.main_default_ruleset_id : local.repository_defaults.main_default_ruleset_id
     }
   }
