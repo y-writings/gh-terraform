@@ -26,17 +26,13 @@ variable "repositories" {
 variable "repository_governance" {
   description = "Shared governance controls applied uniformly to all managed repositories"
   type = object({
-    manage_security_and_analysis           = optional(bool)
-    enable_required_code_scanning          = optional(bool)
-    vulnerability_alerts                   = optional(bool)
-    secret_scanning_status                 = optional(string)
-    secret_scanning_push_protection_status = optional(string)
-    ruleset_enforcement                    = optional(string)
-    required_approving_review_count        = optional(number)
-    dismiss_stale_reviews_on_push          = optional(bool)
-    require_code_owner_review              = optional(bool)
-    require_last_push_approval             = optional(bool)
-    required_review_thread_resolution      = optional(bool)
+    enable_required_code_scanning     = optional(bool)
+    ruleset_enforcement               = optional(string)
+    required_approving_review_count   = optional(number)
+    dismiss_stale_reviews_on_push     = optional(bool)
+    require_code_owner_review         = optional(bool)
+    require_last_push_approval        = optional(bool)
+    required_review_thread_resolution = optional(bool)
     required_code_scanning = optional(object({
       tool                      = string
       alerts_threshold          = string
@@ -44,16 +40,6 @@ variable "repository_governance" {
     }))
   })
   default = {}
-
-  validation {
-    condition     = var.repository_governance.secret_scanning_status == null || contains(["enabled", "disabled"], var.repository_governance.secret_scanning_status)
-    error_message = "repository_governance.secret_scanning_status must be enabled or disabled."
-  }
-
-  validation {
-    condition     = var.repository_governance.secret_scanning_push_protection_status == null || contains(["enabled", "disabled"], var.repository_governance.secret_scanning_push_protection_status)
-    error_message = "repository_governance.secret_scanning_push_protection_status must be enabled or disabled."
-  }
 
   validation {
     condition     = var.repository_governance.ruleset_enforcement == null || contains(["active", "disabled"], var.repository_governance.ruleset_enforcement)
