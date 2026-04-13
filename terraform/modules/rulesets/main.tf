@@ -1,41 +1,6 @@
-resource "github_repository" "this" {
-  name       = var.repository_name
-  visibility = var.repository_visibility
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  vulnerability_alerts = var.manage_security_and_analysis ? var.vulnerability_alerts : null
-
-  dynamic "security_and_analysis" {
-    for_each = var.manage_security_and_analysis ? [1] : []
-    content {
-      secret_scanning {
-        status = var.secret_scanning_status
-      }
-
-      secret_scanning_push_protection {
-        status = var.secret_scanning_push_protection_status
-      }
-    }
-  }
-
-  has_issues = true
-  has_wiki   = var.has_wiki
-
-  delete_branch_on_merge = var.delete_branch_on_merge
-
-  allow_merge_commit          = false
-  allow_squash_merge          = true
-  squash_merge_commit_title   = "PR_TITLE"
-  squash_merge_commit_message = "PR_BODY"
-  allow_rebase_merge          = false
-}
-
 resource "github_repository_ruleset" "main_default" {
   name        = "main-default"
-  repository  = github_repository.this.name
+  repository  = var.repository_name
   target      = "branch"
   enforcement = var.ruleset_enforcement
 

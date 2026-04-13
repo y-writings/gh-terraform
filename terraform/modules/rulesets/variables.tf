@@ -3,51 +3,6 @@ variable "repository_name" {
   type        = string
 }
 
-variable "repository_visibility" {
-  description = "Repository visibility. Set to null to preserve imported visibility or provider defaults"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.repository_visibility == null || contains(["public", "private"], var.repository_visibility)
-    error_message = "repository_visibility must be null, public, or private for personal accounts."
-  }
-}
-
-variable "manage_security_and_analysis" {
-  description = "Whether Terraform should manage vulnerability alerts and security_and_analysis settings"
-  type        = bool
-  default     = false
-}
-
-variable "vulnerability_alerts" {
-  description = "Dependabot alerts setting applied when manage_security_and_analysis is true"
-  type        = bool
-  default     = true
-}
-
-variable "secret_scanning_status" {
-  description = "Secret scanning status applied when manage_security_and_analysis is true"
-  type        = string
-  default     = "enabled"
-
-  validation {
-    condition     = contains(["enabled", "disabled"], var.secret_scanning_status)
-    error_message = "secret_scanning_status must be enabled or disabled."
-  }
-}
-
-variable "secret_scanning_push_protection_status" {
-  description = "Push protection status applied when manage_security_and_analysis is true"
-  type        = string
-  default     = "enabled"
-
-  validation {
-    condition     = contains(["enabled", "disabled"], var.secret_scanning_push_protection_status)
-    error_message = "secret_scanning_push_protection_status must be enabled or disabled."
-  }
-}
-
 variable "ruleset_enforcement" {
   description = "Repository ruleset enforcement mode"
   type        = string
@@ -122,18 +77,6 @@ variable "required_code_scanning" {
     condition     = var.required_code_scanning == null || contains(["none", "critical", "high_or_higher", "medium_or_higher", "all"], var.required_code_scanning.security_alerts_threshold)
     error_message = "required_code_scanning.security_alerts_threshold must be none, critical, high_or_higher, medium_or_higher, or all."
   }
-}
-
-variable "delete_branch_on_merge" {
-  description = "Delete the branch on merge setting for the repository"
-  type        = bool
-  default     = false
-}
-
-variable "has_wiki" {
-  description = "Whether the repository wiki is enabled"
-  type        = bool
-  default     = true
 }
 
 variable "bypass_repository_role_actor_id" {
