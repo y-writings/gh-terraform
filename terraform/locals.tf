@@ -1,6 +1,5 @@
 locals {
   repository_defaults = {
-    visibility                 = "public"
     import_existing_repository = false
     main_default_ruleset_id    = null
   }
@@ -8,7 +7,6 @@ locals {
   repositories = {
     for name, config in var.repositories :
     name => {
-      visibility                 = config.visibility != null ? config.visibility : local.repository_defaults.visibility
       import_existing_repository = coalesce(config.import_existing_repository, local.repository_defaults.import_existing_repository)
       main_default_ruleset_id    = config.main_default_ruleset_id != null ? config.main_default_ruleset_id : local.repository_defaults.main_default_ruleset_id
     }
