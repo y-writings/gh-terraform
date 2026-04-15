@@ -1,21 +1,6 @@
 # Copy this file to terraform.tfvars and adjust values if needed.
 github_owner = "y-writings"
 
-repository_governance = {
-  enable_required_code_scanning          = true
-  ruleset_enforcement                    = "active"
-  required_approving_review_count        = 1
-  dismiss_stale_reviews_on_push          = true
-  require_code_owner_review              = false
-  require_last_push_approval             = false
-  required_review_thread_resolution      = true
-  required_code_scanning = {
-    tool                      = "CodeQL"
-    alerts_threshold          = "errors_and_warnings"
-    security_alerts_threshold = "high_or_higher"
-  }
-}
-
 repositories = {
   dotfiles = {
     visibility                 = "public"
