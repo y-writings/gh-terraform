@@ -2,32 +2,9 @@
 github_owner = "y-writings"
 
 repositories = {
-  dotfiles = {
-    visibility                 = "public"
-    import_existing_repository = true
-    main_default_ruleset_id    = "14686753"
-  }
-
-  templates = {
-    visibility                 = "public"
-    import_existing_repository = true
-    main_default_ruleset_id    = "14702457"
-  }
-
-  container = {
-    visibility                 = "public"
-    import_existing_repository = true
-  }
-
-  karabiner-config = {
-    visibility                 = "public"
-    import_existing_repository = true
-    main_default_ruleset_id    = "14687410"
-  }
-
-  gh-terraform = {
-    visibility                 = "public"
-    import_existing_repository = true
-    main_default_ruleset_id    = "14959390"
-  }
+  dotfiles         = {}
+  templates        = {}
+  container        = {}
+  karabiner-config = {}
+  gh-terraform     = {}
 }
