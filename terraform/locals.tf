@@ -1,3 +1,9 @@
 locals {
-  repositories = var.repositories
+  repositories = {
+    dotfiles         = {}
+    templates        = {}
+    container        = {}
+    karabiner-config = {}
+    gh-terraform     = {}
+  }
 }
