@@ -14,63 +14,9 @@ variable "repositories" {
 
   validation {
     condition = alltrue([
-      for repository in values(var.repositories) : repository.visibility == null || contains(["public", "private"], repository.visibility)
+      for repository in values(var.repositories) : repository.visibility == null || repository.visibility == "public"
     ])
-    error_message = "repository visibility must be null, public, or private for personal accounts."
+    error_message = "repository visibility must be omitted or set to public for managed personal-account repositories."
   }
 
-}
-
-variable "repository_governance" {
-  description = "Shared governance controls applied uniformly to all managed repositories"
-  type = object({
-    enable_required_code_scanning     = optional(bool)
-    ruleset_enforcement               = optional(string)
-    required_approving_review_count   = optional(number)
-    dismiss_stale_reviews_on_push     = optional(bool)
-    require_code_owner_review         = optional(bool)
-    require_last_push_approval        = optional(bool)
-    required_review_thread_resolution = optional(bool)
-    required_code_scanning = optional(object({
-      tool                      = string
-      alerts_threshold          = string
-      security_alerts_threshold = string
-    }))
-  })
-  default = {}
-
-  validation {
-    condition     = var.repository_governance.ruleset_enforcement == null || contains(["active", "disabled"], var.repository_governance.ruleset_enforcement)
-    error_message = "repository_governance.ruleset_enforcement must be active or disabled for personal-account repository rulesets."
-  }
-
-  validation {
-    condition     = var.repository_governance.required_approving_review_count == null || var.repository_governance.required_approving_review_count >= 0
-    error_message = "repository_governance.required_approving_review_count must be zero or greater."
-  }
-
-  validation {
-    condition     = var.repository_governance.required_approving_review_count == null || floor(var.repository_governance.required_approving_review_count) == var.repository_governance.required_approving_review_count
-    error_message = "repository_governance.required_approving_review_count must be an integer."
-  }
-
-  validation {
-    condition     = coalesce(var.repository_governance.enable_required_code_scanning, true) || var.repository_governance.required_code_scanning == null
-    error_message = "repository_governance.required_code_scanning must be null or omitted when repository_governance.enable_required_code_scanning is false."
-  }
-
-  validation {
-    condition     = var.repository_governance.required_code_scanning == null || trimspace(var.repository_governance.required_code_scanning.tool) != ""
-    error_message = "repository_governance.required_code_scanning.tool must be a non-empty string."
-  }
-
-  validation {
-    condition     = var.repository_governance.required_code_scanning == null || contains(["none", "errors", "errors_and_warnings", "all"], var.repository_governance.required_code_scanning.alerts_threshold)
-    error_message = "repository_governance.required_code_scanning.alerts_threshold must be none, errors, errors_and_warnings, or all."
-  }
-
-  validation {
-    condition     = var.repository_governance.required_code_scanning == null || contains(["none", "critical", "high_or_higher", "medium_or_higher", "all"], var.repository_governance.required_code_scanning.security_alerts_threshold)
-    error_message = "repository_governance.required_code_scanning.security_alerts_threshold must be none, critical, high_or_higher, medium_or_higher, or all."
-  }
 }

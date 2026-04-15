@@ -1,4 +1,9 @@
 locals {
+  manage_security_and_analysis           = true
+  vulnerability_alerts                   = true
+  secret_scanning_status                 = "enabled"
+  secret_scanning_push_protection_status = "enabled"
+
   has_wiki                    = true
   has_issues                  = true
   allow_merge_commit          = false
@@ -7,6 +12,26 @@ locals {
   squash_merge_commit_message = "PR_BODY"
   allow_rebase_merge          = false
   delete_branch_on_merge      = false
+}
+
+output "manage_security_and_analysis" {
+  description = "Whether Terraform should manage vulnerability alerts and security_and_analysis settings"
+  value       = local.manage_security_and_analysis
+}
+
+output "vulnerability_alerts" {
+  description = "Dependabot alerts setting applied when manage_security_and_analysis is true"
+  value       = local.vulnerability_alerts
+}
+
+output "secret_scanning_status" {
+  description = "Secret scanning status applied when manage_security_and_analysis is true"
+  value       = local.secret_scanning_status
+}
+
+output "secret_scanning_push_protection_status" {
+  description = "Push protection status applied when manage_security_and_analysis is true"
+  value       = local.secret_scanning_push_protection_status
 }
 
 output "has_wiki" {
@@ -47,4 +72,9 @@ output "allow_rebase_merge" {
 output "delete_branch_on_merge" {
   description = "Delete the branch on merge setting for the repository"
   value       = local.delete_branch_on_merge
+}
+
+output "main_default_ruleset_id" {
+  description = "ID of the main-default repository ruleset"
+  value       = var.repository_name == null ? null : github_repository_ruleset.main_default[0].id
 }
