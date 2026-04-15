@@ -1,5 +1,5 @@
 provider "github" {
-  owner = var.github_owner
+  owner = "y-writings"
 }
 
 module "repository" {
