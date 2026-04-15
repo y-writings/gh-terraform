@@ -73,8 +73,3 @@ output "delete_branch_on_merge" {
   description = "Delete the branch on merge setting for the repository"
   value       = local.delete_branch_on_merge
 }
-
-output "main_default_ruleset_id" {
-  description = "ID of the main-default repository ruleset"
-  value       = var.repository_name == null ? null : github_repository_ruleset.main_default[0].id
-}
