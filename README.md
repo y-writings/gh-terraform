@@ -104,14 +104,16 @@ repositories = {
 1. `terraform/locals.tf` の `repositories` を必要に応じて調整します
 2. `GITHUB_TOKEN` を設定します
 3. 既存 repo や既存 `main-default` ruleset を state に載せる必要がある場合は Terraform CLI の `import` を使います
-4. `terraform plan` で差分を確認し、問題なければ apply します
+4. `mise run plan` で差分を確認し、問題なければ `mise run apply` を実行します
 
 ```bash
 export GITHUB_TOKEN="<your-token>"
 terraform -chdir=terraform init
-terraform -chdir=terraform plan
-terraform -chdir=terraform apply
+mise run plan
+mise run apply
 ```
+
+`mise.toml` の task は内部で `terraform -chdir=terraform plan` / `terraform -chdir=terraform apply` を実行します。
 
 ## 既存 state の移行
 
