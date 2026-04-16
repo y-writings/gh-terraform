@@ -13,5 +13,7 @@ module "governance_rulesets" {
   source   = "./modules/governance"
   for_each = local.repositories
 
+  depends_on = [module.repository]
+
   repository_name = each.key
 }
