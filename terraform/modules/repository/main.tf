@@ -12,7 +12,7 @@ locals {
   squash_merge_commit_title   = "PR_TITLE"
   squash_merge_commit_message = "PR_BODY"
   allow_rebase_merge          = false
-  delete_branch_on_merge      = false
+  delete_branch_on_merge      = true
 }
 
 resource "github_repository" "this" {
