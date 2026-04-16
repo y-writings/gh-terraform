@@ -13,5 +13,5 @@ module "governance_rulesets" {
   source   = "./modules/governance"
   for_each = local.repositories
 
-  repository_name = module.repository[each.key].name
+  repository_name = each.key
 }
