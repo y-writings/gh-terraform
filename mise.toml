@@ -11,3 +11,11 @@ run = ["pinact run --check --fix", "dockerfile-pin run --write"]
 [tasks.scan]
 description = "Scan all repository files with betterleaks"
 run = ["betterleaks dir --no-banner --redact=20 ."]
+
+[tasks.plan]
+description = "Run Terraform plan for managed GitHub repositories"
+run = ["terraform -chdir=terraform plan"]
+
+[tasks.apply]
+description = "Run Terraform apply for managed GitHub repositories"
+run = ["terraform -chdir=terraform apply"]
