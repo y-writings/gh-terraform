@@ -13,6 +13,13 @@ locals {
   squash_merge_commit_message = "PR_BODY"
   allow_rebase_merge          = false
   delete_branch_on_merge      = true
+
+  default_workflow_permissions     = "write"
+  can_approve_pull_request_reviews = true
+
+  actions_enabled              = true
+  actions_allowed_actions      = "all"
+  actions_sha_pinning_required = true
 }
 
 resource "github_repository" "this" {
@@ -48,4 +55,19 @@ resource "github_repository" "this" {
   squash_merge_commit_title   = local.squash_merge_commit_title
   squash_merge_commit_message = local.squash_merge_commit_message
   allow_rebase_merge          = local.allow_rebase_merge
+}
+
+resource "github_workflow_repository_permissions" "this" {
+  repository = github_repository.this.name
+
+  default_workflow_permissions     = local.default_workflow_permissions
+  can_approve_pull_request_reviews = local.can_approve_pull_request_reviews
+}
+
+resource "github_actions_repository_permissions" "this" {
+  repository = github_repository.this.name
+
+  enabled              = local.actions_enabled
+  allowed_actions      = local.actions_allowed_actions
+  sha_pinning_required = local.actions_sha_pinning_required
 }
