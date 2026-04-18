@@ -5,5 +5,6 @@ locals {
     container        = {}
     karabiner-config = {}
     gh-terraform     = {}
+    y-writings       = {}
   }
 }
