@@ -8,5 +8,6 @@ locals {
     y-writings          = {}
     snapshot-tag-action = {}
     oc-logger           = {}
+    opencode-keyflow    = {}
   }
 }
