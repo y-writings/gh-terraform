@@ -148,10 +148,14 @@ repositories = {
 ```bash
 export GITHUB_TOKEN="<your-token>"
 cp terraform/work-repositories/terraform.tfvars.example terraform/work-repositories/terraform.tfvars
-terraform -chdir=terraform/work-repositories init
+terraform -chdir=terraform/work-repositories init \
+  -backend-config="bucket=<gcs-bucket>" \
+  -backend-config="prefix=work-repositories"
 mise run plan
 mise run apply
 ```
+
+backend は `terraform/work-repositories/backend.tf` で `backend "gcs" {}` の空ブロックだけを宣言し、bucket / prefix などの値は `terraform init -backend-config=...` で外から注入します。ローカルに `terraform/work-repositories/config.gcs.tfbackend` を作成して `terraform -chdir=terraform/work-repositories init -backend-config=config.gcs.tfbackend` のように渡すこともできます。
 
 `terraform/work-repositories/terraform.tfvars` には次のように設定します。
 
@@ -167,10 +171,14 @@ onepassword_account = "my.1password.com"
 
 ```bash
 export GITHUB_TOKEN="<your-token>"
-terraform -chdir=terraform/fork-repositories init
+terraform -chdir=terraform/fork-repositories init \
+  -backend-config="bucket=<gcs-bucket>" \
+  -backend-config="prefix=fork-repositories"
 mise run fork:plan
 mise run fork:apply
 ```
+
+fork リポジトリ側も `terraform/fork-repositories/backend.tf` で `backend "gcs" {}` の空ブロックだけを宣言し、GCS backend の値は init 時の `-backend-config` で注入します。ローカルに `terraform/fork-repositories/config.gcs.tfbackend` を作成する場合も、git 管理外として扱います。
 
 `terraform/fork-repositories/locals.tf` には次のように fork 元を配列で指定します。fork 後の repo 名は、デフォルトでは `${source_repo}-fork` にします。repo 名が重複する場合や GitHub の repository name limit（100 文字）を超える場合は、`fork_name` で短く一意な repo 名を明示します。
 
