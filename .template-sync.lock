@@ -13,7 +13,7 @@ files:
         source_sha256: 0a857f7e0a16b5783513f9b33848ca96695262bfa259da16a9304ac840e0af77
     github-workflow-add-entire-checkpoints-to-pr-body:
         target: .github/workflows/add-entire-checkpoints-to-pr-body.yaml
-        source_sha256: 6afe8a22c4760d4673831514aa7143b510a89b41e4a9fbb39cdd09f69ca15737
+        source_sha256: bc46375d6ae3fb1b4ceb05e3099dca37acc45dc3111436b797c5149d4ffda944
     github-workflow-scan:
         target: .github/workflows/scan.yaml
         source_sha256: a3f8d3e1d5b0d397ac8efa6ffe36832063bf9a2cfb9ee80797b5b58c4ae79489
