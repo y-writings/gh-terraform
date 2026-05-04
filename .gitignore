@@ -43,6 +43,8 @@ terraform.rc
 # Uncomment the line below if you want to ignore planout files.
 # planout
 
+# Terraform backend config files
+*.tfbackend
 backend.hcl
 
 .gh
