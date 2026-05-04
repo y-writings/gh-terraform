@@ -28,7 +28,7 @@ files:
         source_sha256: e41e33901b56b83da4ad86aca373f4df1cac87e1d1a2fef3bf9a8a6179d1834c
     mise-baseline:
         target: .mise/config.baseline.toml
-        source_sha256: 3a7923b41185e2073be54043670835aad1b3204470bb82c870d977c26760caa1
+        source_sha256: f9cba3b8bfdb26d6d787b39929b06e4dcad69bb6721af5eedd6e0d2ffe688080
     mise-project:
         target: .mise/config.toml
         source_sha256: 91243feb23574b36f7fb1ae07eca9d415f8c078d6d66da6c9abe63043ea7b631
