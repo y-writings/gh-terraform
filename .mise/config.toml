@@ -1,7 +1,7 @@
 [tasks.plan]
-description = "Run Terraform plan for managed GitHub repositories"
-run = ["terraform -chdir=terraform plan"]
+description = "Run Terraform plan for managed working repositories"
+run = ["terraform -chdir=terraform/work-repositories plan"]
 
 [tasks.apply]
-description = "Run Terraform apply for managed GitHub repositories"
-run = ["terraform -chdir=terraform apply"]
+description = "Run Terraform apply for managed working repositories"
+run = ["terraform -chdir=terraform/work-repositories apply"]
