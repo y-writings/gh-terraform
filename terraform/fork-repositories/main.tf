@@ -4,7 +4,7 @@ provider "github" {
 
 resource "github_repository" "fork" {
   for_each = {
-    for repository in local.repositories : "${repository.source_repo}-fork" => repository
+    for repository in local.repositories : "${repository.source_owner}-${repository.source_repo}-fork" => repository
   }
 
   name         = each.key

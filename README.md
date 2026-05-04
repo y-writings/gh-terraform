@@ -172,7 +172,7 @@ mise run fork:plan
 mise run fork:apply
 ```
 
-`terraform/fork-repositories/locals.tf` には次のように fork 元を配列で指定します。fork 後の repo 名は `source_repo` から `${source_repo}-fork` として自動生成します。
+`terraform/fork-repositories/locals.tf` には次のように fork 元を配列で指定します。fork 後の repo 名は `source_owner` と `source_repo` から `${source_owner}-${source_repo}-fork` として自動生成します。
 
 ```hcl
 locals {
