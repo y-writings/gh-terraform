@@ -172,7 +172,7 @@ mise run fork:plan
 mise run fork:apply
 ```
 
-`terraform/fork-repositories/locals.tf` には次のように fork 元を配列で指定します。fork 後の repo 名は `source_owner` と `source_repo` から `${source_owner}-${source_repo}-fork` として自動生成します。
+`terraform/fork-repositories/locals.tf` には次のように fork 元を配列で指定します。fork 後の repo 名は、デフォルトでは `${source_repo}-fork` にします。repo 名が重複する場合や GitHub の repository name limit（100 文字）を超える場合は、`fork_name` で短く一意な repo 名を明示します。
 
 ```hcl
 locals {
@@ -180,6 +180,11 @@ locals {
     {
       source_owner = "zed-industries"
       source_repo  = "zed"
+    },
+    {
+      source_owner = "another-owner"
+      source_repo  = "zed"
+      fork_name    = "another-zed-fork"
     },
   ]
 }
