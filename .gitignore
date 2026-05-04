@@ -11,3 +11,4 @@ terraform/*/*.tfstate.*
 terraform/*/terraform.tfstate.d/
 terraform/*/crash.log
 .gh
+.opencode/plugins/entire.ts
