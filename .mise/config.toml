@@ -5,3 +5,11 @@ run = ["terraform -chdir=terraform/work-repositories plan"]
 [tasks.apply]
 description = "Run Terraform apply for managed working repositories"
 run = ["terraform -chdir=terraform/work-repositories apply"]
+
+[tasks."fork:plan"]
+description = "Run Terraform plan for managed fork repositories"
+run = ["terraform -chdir=terraform/fork-repositories plan"]
+
+[tasks."fork:apply"]
+description = "Run Terraform apply for managed fork repositories"
+run = ["terraform -chdir=terraform/fork-repositories apply"]
