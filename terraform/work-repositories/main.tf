@@ -7,14 +7,14 @@ provider "onepassword" {
 }
 
 module "repository" {
-  source   = "./modules/repository"
+  source   = "../modules/repository"
   for_each = local.repositories
 
   name = each.key
 }
 
 module "release_please" {
-  source   = "./modules/release_please"
+  source   = "../modules/release_please"
   for_each = local.repositories
 
   depends_on = [module.repository]
@@ -23,7 +23,7 @@ module "release_please" {
 }
 
 module "governance_rulesets" {
-  source   = "./modules/governance"
+  source   = "../modules/governance"
   for_each = local.repositories
 
   depends_on = [module.repository]
