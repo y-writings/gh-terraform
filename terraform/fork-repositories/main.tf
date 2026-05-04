@@ -7,9 +7,13 @@ locals {
     for repository in local.repositories : coalesce(try(repository.fork_name, null), "${repository.source_repo}-fork")
   ]
 
+  canonical_fork_repository_names = [
+    for name in local.fork_repository_names : lower(name)
+  ]
+
   duplicate_fork_repository_names = distinct([
     for name in local.fork_repository_names : name
-    if length([for candidate in local.fork_repository_names : candidate if candidate == name]) > 1
+    if length([for candidate in local.canonical_fork_repository_names : candidate if candidate == lower(name)]) > 1
   ])
 
   fork_repositories_by_name = {
