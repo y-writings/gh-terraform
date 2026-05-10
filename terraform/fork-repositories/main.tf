@@ -44,3 +44,10 @@ resource "github_repository" "fork" {
     }
   }
 }
+
+module "fork_governance" {
+  source   = "../modules/fork_governance"
+  for_each = github_repository.fork
+
+  repository_name = each.value.name
+}
