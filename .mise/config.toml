@@ -1,18 +1,17 @@
-[tasks.init]
-description = "Run Terraform init for managed working repositories"
-run = ["terraform -chdir=terraform/work-repositories init -backend-config=backend.hcl"]
+[tasks.tfinit]
+description = "Run Terraform init for managed work and fork repositories"
+run = [
+  "terraform -chdir=terraform/work-repositories init -backend-config=backend.hcl",
+  "terraform -chdir=terraform/fork-repositories init -backend-config=backend.hcl"
+]
 
-[tasks.plan]
+[tasks."work:plan"]
 description = "Run Terraform plan for managed working repositories"
 run = ["terraform -chdir=terraform/work-repositories plan"]
 
-[tasks.apply]
+[tasks."work:apply"]
 description = "Run Terraform apply for managed working repositories"
 run = ["terraform -chdir=terraform/work-repositories apply"]
-
-[tasks."fork:init"]
-description = "Run Terraform init for managed fork repositories"
-run = ["terraform -chdir=terraform/fork-repositories init -backend-config=backend.hcl"]
 
 [tasks."fork:plan"]
 description = "Run Terraform plan for managed fork repositories"
