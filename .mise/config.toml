@@ -1,5 +1,5 @@
 [tasks.tfinit]
-description = "Run Terraform init for managed working repositories"
+description = "Run Terraform init for managed work and fork repositories"
 run = [
   "terraform -chdir=terraform/work-repositories init -backend-config=backend.hcl",
   "terraform -chdir=terraform/fork-repositories init -backend-config=backend.hcl"
