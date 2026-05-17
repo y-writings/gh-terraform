@@ -159,10 +159,10 @@ repositories = {
 - advanced security baseline (`Dependabot alerts` / `Secret scanning` / `Push protection`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions workflow permissions baseline (`default_workflow_permissions` / `can_approve_pull_request_reviews`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions permissions baseline (`enabled` / `allowed_actions` / `sha_pinning_required`) は `terraform/modules/repository` に固定で保持します
-- release-please 用の repository secret / variable baseline は `terraform/modules/release_please` に固定で保持します
+- release-please 用の repository secret / variable baseline は `terraform/modules/release_please` に保持し、repo 固有の適用有無は root module から渡します
 - `visibility`: `terraform/modules/repository` に固定で保持され、root では指定しません
 - `repositories`: 管理対象 repo 名を key にした map です。value は空 object (`{}`) を指定します
-- `y-writings` repo に対してだけ `METRICS_TOKEN` secret を追加します
+- `terraform/work-repositories/main.tf` から `y-writings` repo に対してだけ `METRICS_TOKEN` secret を追加します
 - `sha_pinning_required = true` により、managed repo の workflow で使う Action は full-length commit SHA で pin されている前提になります（reusable workflow の参照は GitHub の仕様上 tag 利用が残る場合があります）
 - Artifact and log retention は GitHub API では設定できますが、現行の Terraform GitHub provider では repository scope の設定項目として未対応のため、この repo では baseline 管理していません
 

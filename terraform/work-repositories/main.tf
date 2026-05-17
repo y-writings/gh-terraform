@@ -19,7 +19,8 @@ module "release_please" {
 
   depends_on = [module.repository]
 
-  repository_name = each.key
+  repository_name      = each.key
+  enable_metrics_token = each.key == "y-writings"
 }
 
 module "governance_rulesets" {
