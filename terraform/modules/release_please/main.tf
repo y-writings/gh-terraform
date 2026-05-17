@@ -50,7 +50,7 @@ resource "github_actions_variable" "app_id" {
 }
 
 resource "github_actions_secret" "metrics_token" {
-  count = var.repository_name == "y-writings" ? 1 : 0
+  count = var.enable_metrics_token ? 1 : 0
 
   repository      = var.repository_name
   secret_name     = local.metrics_token_secret_name
