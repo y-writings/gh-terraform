@@ -1,5 +1,21 @@
+[tasks.tfbackend]
+description = "Generate Terraform backend configs from 1Password"
+hide = true
+run = [
+  "op inject -i terraform/work-repositories/backend.hcl.tpl -o terraform/work-repositories/backend.hcl",
+  "op inject -i terraform/fork-repositories/backend.hcl.tpl -o terraform/fork-repositories/backend.hcl"
+]
+
 [tasks.tfinit]
-description = "Run Terraform init for managed work and fork repositories"
+description = "Generate backend configs from 1Password and run Terraform init"
+run = [
+  "mise run tfbackend",
+  "mise run tfinit:local"
+]
+
+[tasks."tfinit:local"]
+description = "Run Terraform init with existing local backend configs"
+hide = true
 run = [
   "terraform -chdir=terraform/work-repositories init -backend-config=backend.hcl",
   "terraform -chdir=terraform/fork-repositories init -backend-config=backend.hcl"
