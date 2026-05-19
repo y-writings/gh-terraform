@@ -12,6 +12,7 @@ locals {
   squash_merge_commit_title   = "PR_TITLE"
   squash_merge_commit_message = "PR_BODY"
   allow_rebase_merge          = false
+  allow_auto_merge            = true
   delete_branch_on_merge      = true
 
   default_workflow_permissions     = "write"
@@ -55,6 +56,7 @@ resource "github_repository" "this" {
   squash_merge_commit_title   = local.squash_merge_commit_title
   squash_merge_commit_message = local.squash_merge_commit_message
   allow_rebase_merge          = local.allow_rebase_merge
+  allow_auto_merge            = local.allow_auto_merge
 }
 
 resource "github_workflow_repository_permissions" "this" {

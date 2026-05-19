@@ -43,7 +43,7 @@ mise run tfinit
 │   │   │   ├── outputs.tf
 │   │   │   └── versions.tf
 │   │   ├── release_please/
-│   │   │   ├── main.tf            # release-please 用の Actions secret / variable baseline
+│   │   │   ├── main.tf            # release-please / changelog approver 用の Actions secret / variable baseline
 │   │   │   ├── variables.tf
 │   │   │   └── versions.tf
 │   │   └── repository/
@@ -72,10 +72,11 @@ mise run tfinit
   - pull request 必須
 - `github_repository` による repo 設定
   - fixed public visibility
-  - issues / wiki / merge method
+  - issues / wiki / merge method / auto-merge
   - GitHub Actions workflow permissions
   - GitHub Actions permissions
   - release-please 用の共通 Actions secret / variable
+  - changelog approver 用の共通 Actions secret / variable
   - module-owned governance baseline
 
 ### 現在採用している統一 baseline
@@ -105,6 +106,7 @@ mise run tfinit
   - Squash merge commit title: `PR_TITLE`
   - Squash merge commit message: `PR_BODY`
   - Rebase merge: `disabled`
+  - Auto-merge: `enabled`
   - Default workflow permissions: `write`
   - Allow GitHub Actions to create and approve pull requests: `enabled`
   - Actions permissions: `enabled`
@@ -124,7 +126,7 @@ mise run tfinit
 
 - `github_organization_ruleset` は使いません
 - `modules/repository` に fixed repository baseline を、`modules/governance` に repo ごとの ruleset baseline を保持します
-- `modules/release_please` に release-please 用の共通 Actions secret / variable baseline を保持します
+- `modules/release_please` に release-please / changelog approver 用の共通 Actions secret / variable baseline を保持します
 - 将来 repo を追加するときは、原則として `terraform/work-repositories/locals.tf` の `repositories` map に 1 エントリ追加します
 - ただし `sha_pinning_required = true` を baseline として適用するため、既存 workflow が tag / branch 参照の Action を使っている repo は事前に full-length commit SHA 参照へ寄せる必要があります
 - shared repository baseline と advanced security baseline は `terraform/modules/repository` に固定で保持します
@@ -132,8 +134,10 @@ mise run tfinit
 - GitHub Actions permissions baseline も `terraform/modules/repository` に固定で保持します
 - release-please 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` は `terraform/modules/release_please` が 1Password から取得して各 repo に適用します
 - 1Password 側では固定で `op://dev/release-please-bot/private key` と `op://dev/release-please-bot/info/app_id` に対応する値を参照します
+- changelog approver 用の `CHANGELOG_APPROVER_APP_PRIVATE_KEY` / `CHANGELOG_APPROVER_APP_ID` は `terraform/modules/release_please` が 1Password から取得して各 repo に適用します
+- 1Password 側では固定で `op://dev/changelog-approver-bot` と `op://dev/changelog-approver-bot/INFO/app_id` に対応する値を参照します
 - governance のルール内容は module 内に固定で保持し、root input では変更できません
-- fork リポジトリ管理は最小構成とし、通常リポジトリ用の governance / release-please baseline は適用しません
+- fork リポジトリ管理は最小構成とし、通常リポジトリ用の governance / release-please / changelog approver baseline は適用しません
 - 既存 repo や ruleset を state に載せる必要がある場合は Terraform CLI の `import` を使います
 
 ## 管理対象リポジトリ
@@ -156,11 +160,11 @@ repositories = {
 
 ### repositories の意味
 
-- shared repository baseline (`has_wiki` / `has_issues` / merge method defaults / `delete_branch_on_merge`) は `terraform/modules/repository` に固定で保持します
+- shared repository baseline (`has_wiki` / `has_issues` / merge method defaults / `allow_auto_merge` / `delete_branch_on_merge`) は `terraform/modules/repository` に固定で保持します
 - advanced security baseline (`Dependabot alerts` / `Secret scanning` / `Push protection`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions workflow permissions baseline (`default_workflow_permissions` / `can_approve_pull_request_reviews`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions permissions baseline (`enabled` / `allowed_actions` / `sha_pinning_required`) は `terraform/modules/repository` に固定で保持します
-- release-please 用の repository secret / variable baseline は `terraform/modules/release_please` に保持し、repo 固有の適用有無は root module から渡します
+- release-please / changelog approver 用の repository secret / variable baseline は `terraform/modules/release_please` に保持します。`METRICS_TOKEN` のみ root module から repo 固有の適用有無を渡します
 - `visibility`: `terraform/modules/repository` に固定で保持され、root では指定しません
 - `repositories`: 管理対象 repo 名を key にした map です。value は空 object (`{}`) を指定します
 - `terraform/work-repositories/main.tf` から `y-writings` repo に対してだけ `METRICS_TOKEN` secret を追加します
@@ -323,4 +327,4 @@ repositories = [
 - GitHub ruleset の `code_quality` ルールは現行 Terraform provider では表現できません。既存 repo にある場合は manual drift として扱い、apply 前後で GitHub 側確認が必要です
 - GitHub Actions の Artifact and log retention も GitHub API では設定可能ですが、現行 Terraform GitHub provider では repository scope の resource / attribute がないため manual drift として扱います
 - 現在の module-owned governance baseline は public repository 前提です。personal account では managed repositories を public 前提で扱ってください
-- `terraform/modules/release_please` は 1Password の `dev/release-please-bot` と `dev/metrics-token` を参照します
+- `terraform/modules/release_please` は 1Password の `dev/release-please-bot`、`dev/changelog-approver-bot`、`dev/metrics-token` を参照します
