@@ -22,7 +22,7 @@ resource "github_repository_ruleset" "main_default" {
   rules {
     creation                = true
     deletion                = true
-    update                  = true
+    update                  = false
     required_linear_history = true
     non_fast_forward        = true
 
