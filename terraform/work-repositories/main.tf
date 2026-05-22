@@ -19,8 +19,9 @@ module "release_please" {
 
   depends_on = [module.repository]
 
-  repository_name      = each.value.name
-  enable_metrics_token = try(each.value.enable_metrics_token, false)
+  repository_name             = each.value.name
+  enable_metrics_token        = try(each.value.enable_metrics_token, false)
+  enable_release_please_token = try(each.value.enable_release_please_token, false)
 }
 
 module "governance_rulesets" {

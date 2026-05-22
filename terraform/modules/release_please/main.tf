@@ -53,13 +53,27 @@ data "onepassword_item" "metrics_token" {
   title = local.metrics_token_item_title
 }
 
+moved {
+  from = github_actions_secret.app_private_key
+  to   = github_actions_secret.app_private_key[0]
+}
+
+moved {
+  from = github_actions_variable.app_id
+  to   = github_actions_variable.app_id[0]
+}
+
 resource "github_actions_secret" "app_private_key" {
+  count = var.enable_release_please_token ? 1 : 0
+
   repository      = var.repository_name
   secret_name     = local.app_private_key_secret_name
   plaintext_value = local.app_private_key
 }
 
 resource "github_actions_variable" "app_id" {
+  count = var.enable_release_please_token ? 1 : 0
+
   repository    = var.repository_name
   variable_name = local.app_id_variable_name
   value         = local.app_id

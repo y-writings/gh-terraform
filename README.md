@@ -132,7 +132,7 @@ mise run tfinit
 - shared repository baseline と advanced security baseline は `terraform/modules/repository` に固定で保持します
 - GitHub Actions workflow permissions baseline も `terraform/modules/repository` に固定で保持します
 - GitHub Actions permissions baseline も `terraform/modules/repository` に固定で保持します
-- release-please 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` は `terraform/modules/release_please` が 1Password から取得して各 repo に適用します
+- release-please 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` は `terraform/modules/release_please` が 1Password から取得し、`enable_release_please_token = true` の repo に適用します
 - 1Password 側では固定で `op://dev/release-please-bot/private key` と `op://dev/release-please-bot/info/app_id` に対応する値を参照します
 - changelog approver 用の `CHANGELOG_APPROVER_APP_PRIVATE_KEY` / `CHANGELOG_APPROVER_APP_ID` は `terraform/modules/release_please` が 1Password から取得して各 repo に適用します
 - 1Password 側では固定で `op://dev/changelog-approver-bot` と `op://dev/changelog-approver-bot/INFO/app_id` に対応する値を参照します
@@ -164,7 +164,8 @@ repositories = {
     enable_metrics_token = true
   }
   repo_6e7bb53d = {
-    name = "snapshot-tag-action"
+    name                        = "calver-beacon-action"
+    enable_release_please_token = true
   }
   repo_cf0c042d = {
     name = "oc-logger"
@@ -183,9 +184,10 @@ repositories = {
 - advanced security baseline (`Dependabot alerts` / `Secret scanning` / `Push protection`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions workflow permissions baseline (`default_workflow_permissions` / `can_approve_pull_request_reviews`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions permissions baseline (`enabled` / `allowed_actions` / `sha_pinning_required`) は `terraform/modules/repository` に固定で保持します
-- release-please / changelog approver 用の repository secret / variable baseline は `terraform/modules/release_please` に保持します。`METRICS_TOKEN` のみ root module から repo 固有の適用有無を渡します
+- release-please / changelog approver 用の repository secret / variable baseline は `terraform/modules/release_please` に保持します。release-please bot 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` と `METRICS_TOKEN` は root module から repo 固有の適用有無を渡します
 - `visibility`: `terraform/modules/repository` に固定で保持され、root では指定しません
 - `repositories`: stable ID を key にした map です。key は一度 apply したら原則変更せず、GitHub repository 名は `name` に指定します
+- `terraform/work-repositories/main.tf` から `calver-beacon-action` repo に対してだけ release-please bot 用 secret / variable を追加します
 - `terraform/work-repositories/main.tf` から `y-writings` repo に対してだけ `METRICS_TOKEN` secret を追加します
 - repository rename は `name` の変更で行います。初回の stable ID 移行では `terraform/work-repositories/moved.tf` で既存 state address を移動します
 - `sha_pinning_required = true` により、managed repo の workflow で使う Action は full-length commit SHA で pin されている前提になります（reusable workflow の参照は GitHub の仕様上 tag 利用が残る場合があります）
