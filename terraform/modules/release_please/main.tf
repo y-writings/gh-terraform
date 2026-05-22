@@ -25,8 +25,18 @@ data "onepassword_item" "pat_tokens" {
 }
 
 moved {
+  from = github_actions_secret.app_private_key
+  to   = github_actions_secret.app_private_key[0]
+}
+
+moved {
   from = github_actions_secret.app_private_key[0]
   to   = github_actions_secret.github_app_private_key["release_please"]
+}
+
+moved {
+  from = github_actions_variable.app_id
+  to   = github_actions_variable.app_id[0]
 }
 
 moved {
@@ -35,8 +45,18 @@ moved {
 }
 
 moved {
+  from = github_actions_secret.changelog_approver_app_private_key
+  to   = github_actions_secret.changelog_approver_app_private_key[0]
+}
+
+moved {
   from = github_actions_secret.changelog_approver_app_private_key[0]
   to   = github_actions_secret.github_app_private_key["changelog_approver"]
+}
+
+moved {
+  from = github_actions_variable.changelog_approver_app_id
+  to   = github_actions_variable.changelog_approver_app_id[0]
 }
 
 moved {
