@@ -1,98 +1,74 @@
-data "onepassword_vault" "release_please_token" {
-  count = var.release_please_token != null ? 1 : 0
+data "onepassword_vault" "github_app_tokens" {
+  for_each = var.github_app_tokens
 
-  name = var.release_please_token.vault_name
+  name = each.value.vault_name
 }
 
-data "onepassword_vault" "changelog_approver" {
-  count = var.changelog_approver_token != null ? 1 : 0
+data "onepassword_vault" "pat_tokens" {
+  for_each = var.pat_tokens
 
-  name = var.changelog_approver_token.vault_name
+  name = each.value.vault_name
 }
 
-data "onepassword_vault" "metrics_token" {
-  count = var.metrics_token != null ? 1 : 0
+data "onepassword_item" "github_app_tokens" {
+  for_each = var.github_app_tokens
 
-  name = var.metrics_token.vault_name
+  vault = data.onepassword_vault.github_app_tokens[each.key].uuid
+  title = each.value.item_title
 }
 
-data "onepassword_item" "this" {
-  count = var.release_please_token != null ? 1 : 0
+data "onepassword_item" "pat_tokens" {
+  for_each = var.pat_tokens
 
-  vault = data.onepassword_vault.release_please_token[0].uuid
-  title = var.release_please_token.item_title
-}
-
-data "onepassword_item" "changelog_approver" {
-  count = var.changelog_approver_token != null ? 1 : 0
-
-  vault = data.onepassword_vault.changelog_approver[0].uuid
-  title = var.changelog_approver_token.item_title
-}
-
-data "onepassword_item" "metrics_token" {
-  count = var.metrics_token != null ? 1 : 0
-
-  vault = data.onepassword_vault.metrics_token[0].uuid
-  title = var.metrics_token.item_title
+  vault = data.onepassword_vault.pat_tokens[each.key].uuid
+  title = each.value.item_title
 }
 
 moved {
-  from = github_actions_secret.app_private_key
-  to   = github_actions_secret.app_private_key[0]
+  from = github_actions_secret.app_private_key[0]
+  to   = github_actions_secret.github_app_private_key["release_please"]
 }
 
 moved {
-  from = github_actions_variable.app_id
-  to   = github_actions_variable.app_id[0]
+  from = github_actions_variable.app_id[0]
+  to   = github_actions_variable.github_app_id["release_please"]
 }
 
 moved {
-  from = github_actions_secret.changelog_approver_app_private_key
-  to   = github_actions_secret.changelog_approver_app_private_key[0]
+  from = github_actions_secret.changelog_approver_app_private_key[0]
+  to   = github_actions_secret.github_app_private_key["changelog_approver"]
 }
 
 moved {
-  from = github_actions_variable.changelog_approver_app_id
-  to   = github_actions_variable.changelog_approver_app_id[0]
+  from = github_actions_variable.changelog_approver_app_id[0]
+  to   = github_actions_variable.github_app_id["changelog_approver"]
 }
 
-resource "github_actions_secret" "app_private_key" {
-  count = var.release_please_token != null ? 1 : 0
+moved {
+  from = github_actions_secret.metrics_token[0]
+  to   = github_actions_secret.pat_token["metrics"]
+}
+
+resource "github_actions_secret" "github_app_private_key" {
+  for_each = var.github_app_tokens
 
   repository      = var.repository_name
-  secret_name     = var.release_please_token.private_key_secret_name
-  plaintext_value = data.onepassword_item.this[0].private_key
+  secret_name     = each.value.private_key_secret_name
+  plaintext_value = data.onepassword_item.github_app_tokens[each.key].private_key
 }
 
-resource "github_actions_variable" "app_id" {
-  count = var.release_please_token != null ? 1 : 0
+resource "github_actions_variable" "github_app_id" {
+  for_each = var.github_app_tokens
 
   repository    = var.repository_name
-  variable_name = var.release_please_token.app_id_variable_name
-  value         = data.onepassword_item.this[0].section_map[var.release_please_token.app_id_section].field_map[var.release_please_token.app_id_field].value
+  variable_name = each.value.app_id_variable_name
+  value         = data.onepassword_item.github_app_tokens[each.key].section_map[each.value.app_id_section].field_map[each.value.app_id_field].value
 }
 
-resource "github_actions_secret" "changelog_approver_app_private_key" {
-  count = var.changelog_approver_token != null ? 1 : 0
+resource "github_actions_secret" "pat_token" {
+  for_each = var.pat_tokens
 
   repository      = var.repository_name
-  secret_name     = var.changelog_approver_token.private_key_secret_name
-  plaintext_value = data.onepassword_item.changelog_approver[0].private_key
-}
-
-resource "github_actions_variable" "changelog_approver_app_id" {
-  count = var.changelog_approver_token != null ? 1 : 0
-
-  repository    = var.repository_name
-  variable_name = var.changelog_approver_token.app_id_variable_name
-  value         = data.onepassword_item.changelog_approver[0].section_map[var.changelog_approver_token.app_id_section].field_map[var.changelog_approver_token.app_id_field].value
-}
-
-resource "github_actions_secret" "metrics_token" {
-  count = var.metrics_token != null ? 1 : 0
-
-  repository      = var.repository_name
-  secret_name     = var.metrics_token.secret_name
-  plaintext_value = data.onepassword_item.metrics_token[0].section_map[var.metrics_token.section].field_map[var.metrics_token.field].value
+  secret_name     = each.value.secret_name
+  plaintext_value = data.onepassword_item.pat_tokens[each.key].section_map[each.value.section].field_map[each.value.field].value
 }
