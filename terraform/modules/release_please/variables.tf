@@ -8,14 +8,25 @@ variable "repository_name" {
   }
 }
 
-variable "enable_metrics_token" {
-  description = "Whether to create the METRICS_TOKEN Actions secret for this repository."
-  type        = bool
-  default     = false
+variable "metrics_token" {
+  description = "Complete METRICS_TOKEN configuration. Set to null to skip creating the secret."
+  type = object({
+    vault_name  = string
+    item_title  = string
+    section     = string
+    field       = string
+    secret_name = string
+  })
 }
 
-variable "enable_release_please_token" {
-  description = "Whether to create the release-please GitHub App Actions secret and variable for this repository."
-  type        = bool
-  default     = false
+variable "release_please_token" {
+  description = "Complete release-please GitHub App configuration. Set to null to skip creating the secret and variable."
+  type = object({
+    vault_name              = string
+    item_title              = string
+    app_id_section          = string
+    app_id_field            = string
+    private_key_secret_name = string
+    app_id_variable_name    = string
+  })
 }

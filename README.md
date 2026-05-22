@@ -132,8 +132,8 @@ mise run tfinit
 - shared repository baseline と advanced security baseline は `terraform/modules/repository` に固定で保持します
 - GitHub Actions workflow permissions baseline も `terraform/modules/repository` に固定で保持します
 - GitHub Actions permissions baseline も `terraform/modules/repository` に固定で保持します
-- release-please 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` は `terraform/modules/release_please` が 1Password から取得し、`enable_release_please_token = true` の repo に適用します
-- 1Password 側では固定で `op://dev/release-please-bot/private key` と `op://dev/release-please-bot/info/app_id` に対応する値を参照します
+- release-please 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` は `terraform/modules/release_please` が root module から渡された `release_please_token` object の 1Password 参照先から取得し、その object がある repo に適用します
+- `METRICS_TOKEN` は `terraform/modules/release_please` が root module から渡された `metrics_token` object の 1Password 参照先から取得し、その object がある repo に適用します
 - changelog approver 用の `CHANGELOG_APPROVER_APP_PRIVATE_KEY` / `CHANGELOG_APPROVER_APP_ID` は `terraform/modules/release_please` が 1Password から取得して各 repo に適用します
 - 1Password 側では固定で `op://dev/changelog-approver-bot` と `op://dev/changelog-approver-bot/INFO/app_id` に対応する値を参照します
 - governance のルール内容は module 内に固定で保持し、root input では変更できません
@@ -160,12 +160,16 @@ repositories = {
     name = "gh-terraform"
   }
   repo_fe83b6f2 = {
-    name                 = "y-writings"
-    enable_metrics_token = true
+    name = "y-writings"
+    metrics_token = merge(local.token_presets.metrics, {
+      vault_name = "dev"
+    })
   }
   repo_6e7bb53d = {
-    name                        = "calver-beacon-action"
-    enable_release_please_token = true
+    name = "calver-beacon-action"
+    release_please_token = merge(local.token_presets.release_please, {
+      vault_name = "dev"
+    })
   }
   repo_cf0c042d = {
     name = "oc-logger"
@@ -184,11 +188,11 @@ repositories = {
 - advanced security baseline (`Dependabot alerts` / `Secret scanning` / `Push protection`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions workflow permissions baseline (`default_workflow_permissions` / `can_approve_pull_request_reviews`) は `terraform/modules/repository` に固定で保持します
 - GitHub Actions permissions baseline (`enabled` / `allowed_actions` / `sha_pinning_required`) は `terraform/modules/repository` に固定で保持します
-- release-please / changelog approver 用の repository secret / variable baseline は `terraform/modules/release_please` に保持します。release-please bot 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` と `METRICS_TOKEN` は root module から repo 固有の適用有無を渡します
+- release-please / changelog approver 用の repository secret / variable baseline は `terraform/modules/release_please` に保持します。release-please bot 用の `RELEASE_PLEASE_APP_PRIVATE_KEY` / `RELEASE_PLEASE_APP_ID` と `METRICS_TOKEN` は root module から repo 固有の完全な token object を渡し、object がある場合だけ作成します
 - `visibility`: `terraform/modules/repository` に固定で保持され、root では指定しません
 - `repositories`: stable ID を key にした map です。key は一度 apply したら原則変更せず、GitHub repository 名は `name` に指定します
-- `terraform/work-repositories/main.tf` から `calver-beacon-action` repo に対してだけ release-please bot 用 secret / variable を追加します
-- `terraform/work-repositories/main.tf` から `y-writings` repo に対してだけ `METRICS_TOKEN` secret を追加します
+- `terraform/work-repositories/main.tf` から `release_please_token` を持つ repo に対してだけ release-please bot 用 secret / variable を追加します
+- `terraform/work-repositories/main.tf` から `metrics_token` を持つ repo に対してだけ `METRICS_TOKEN` secret を追加します
 - repository rename は `name` の変更で行います。初回の stable ID 移行では `terraform/work-repositories/moved.tf` で既存 state address を移動します
 - `sha_pinning_required = true` により、managed repo の workflow で使う Action は full-length commit SHA で pin されている前提になります（reusable workflow の参照は GitHub の仕様上 tag 利用が残る場合があります）
 - Artifact and log retention は GitHub API では設定できますが、現行の Terraform GitHub provider では repository scope の設定項目として未対応のため、この repo では baseline 管理していません
@@ -349,4 +353,4 @@ repositories = [
 - GitHub ruleset の `code_quality` ルールは現行 Terraform provider では表現できません。既存 repo にある場合は manual drift として扱い、apply 前後で GitHub 側確認が必要です
 - GitHub Actions の Artifact and log retention も GitHub API では設定可能ですが、現行 Terraform GitHub provider では repository scope の resource / attribute がないため manual drift として扱います
 - 現在の module-owned governance baseline は public repository 前提です。personal account では managed repositories を public 前提で扱ってください
-- `terraform/modules/release_please` は 1Password の `dev/release-please-bot`、`dev/changelog-approver-bot`、`dev/metrics-token` を参照します
+- `terraform/modules/release_please` は optional token について root module から渡された 1Password vault / item / field を参照します。changelog approver は 1Password の `dev/changelog-approver-bot` を参照します
