@@ -24,51 +24,6 @@ data "onepassword_item" "pat_tokens" {
   title = each.value.item_title
 }
 
-moved {
-  from = github_actions_secret.app_private_key
-  to   = github_actions_secret.app_private_key[0]
-}
-
-moved {
-  from = github_actions_secret.app_private_key[0]
-  to   = github_actions_secret.github_app_private_key["release_please"]
-}
-
-moved {
-  from = github_actions_variable.app_id
-  to   = github_actions_variable.app_id[0]
-}
-
-moved {
-  from = github_actions_variable.app_id[0]
-  to   = github_actions_variable.github_app_id["release_please"]
-}
-
-moved {
-  from = github_actions_secret.changelog_approver_app_private_key
-  to   = github_actions_secret.changelog_approver_app_private_key[0]
-}
-
-moved {
-  from = github_actions_secret.changelog_approver_app_private_key[0]
-  to   = github_actions_secret.github_app_private_key["changelog_approver"]
-}
-
-moved {
-  from = github_actions_variable.changelog_approver_app_id
-  to   = github_actions_variable.changelog_approver_app_id[0]
-}
-
-moved {
-  from = github_actions_variable.changelog_approver_app_id[0]
-  to   = github_actions_variable.github_app_id["changelog_approver"]
-}
-
-moved {
-  from = github_actions_secret.metrics_token[0]
-  to   = github_actions_secret.pat_token["metrics"]
-}
-
 resource "github_actions_secret" "github_app_private_key" {
   for_each = var.github_app_tokens
 
