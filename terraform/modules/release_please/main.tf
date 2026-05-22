@@ -1,18 +1,3 @@
-locals {
-  changelog_approver_vault_name                  = "dev"
-  changelog_approver_item_title                  = "changelog-approver-bot"
-  changelog_approver_app_id_section              = "INFO"
-  changelog_approver_app_id_field                = "app_id"
-  changelog_approver_app_private_key_secret_name = "CHANGELOG_APPROVER_APP_PRIVATE_KEY"
-  changelog_approver_app_id_variable_name        = "CHANGELOG_APPROVER_APP_ID"
-
-  changelog_approver_item    = data.onepassword_item.changelog_approver
-  changelog_approver_section = local.changelog_approver_item.section_map[local.changelog_approver_app_id_section]
-
-  changelog_approver_app_private_key = local.changelog_approver_item.private_key
-  changelog_approver_app_id          = local.changelog_approver_section.field_map[local.changelog_approver_app_id_field].value
-}
-
 data "onepassword_vault" "release_please_token" {
   count = var.release_please_token != null ? 1 : 0
 
@@ -20,7 +5,9 @@ data "onepassword_vault" "release_please_token" {
 }
 
 data "onepassword_vault" "changelog_approver" {
-  name = local.changelog_approver_vault_name
+  count = var.changelog_approver_token != null ? 1 : 0
+
+  name = var.changelog_approver_token.vault_name
 }
 
 data "onepassword_vault" "metrics_token" {
@@ -37,8 +24,10 @@ data "onepassword_item" "this" {
 }
 
 data "onepassword_item" "changelog_approver" {
-  vault = data.onepassword_vault.changelog_approver.uuid
-  title = local.changelog_approver_item_title
+  count = var.changelog_approver_token != null ? 1 : 0
+
+  vault = data.onepassword_vault.changelog_approver[0].uuid
+  title = var.changelog_approver_token.item_title
 }
 
 data "onepassword_item" "metrics_token" {
@@ -58,6 +47,16 @@ moved {
   to   = github_actions_variable.app_id[0]
 }
 
+moved {
+  from = github_actions_secret.changelog_approver_app_private_key
+  to   = github_actions_secret.changelog_approver_app_private_key[0]
+}
+
+moved {
+  from = github_actions_variable.changelog_approver_app_id
+  to   = github_actions_variable.changelog_approver_app_id[0]
+}
+
 resource "github_actions_secret" "app_private_key" {
   count = var.release_please_token != null ? 1 : 0
 
@@ -75,15 +74,19 @@ resource "github_actions_variable" "app_id" {
 }
 
 resource "github_actions_secret" "changelog_approver_app_private_key" {
+  count = var.changelog_approver_token != null ? 1 : 0
+
   repository      = var.repository_name
-  secret_name     = local.changelog_approver_app_private_key_secret_name
-  plaintext_value = local.changelog_approver_app_private_key
+  secret_name     = var.changelog_approver_token.private_key_secret_name
+  plaintext_value = data.onepassword_item.changelog_approver[0].private_key
 }
 
 resource "github_actions_variable" "changelog_approver_app_id" {
+  count = var.changelog_approver_token != null ? 1 : 0
+
   repository    = var.repository_name
-  variable_name = local.changelog_approver_app_id_variable_name
-  value         = local.changelog_approver_app_id
+  variable_name = var.changelog_approver_token.app_id_variable_name
+  value         = data.onepassword_item.changelog_approver[0].section_map[var.changelog_approver_token.app_id_section].field_map[var.changelog_approver_token.app_id_field].value
 }
 
 resource "github_actions_secret" "metrics_token" {
