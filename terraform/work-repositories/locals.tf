@@ -1,12 +1,5 @@
 locals {
-  token_presets = {
-    metrics = {
-      item_title  = "metrics-token"
-      section     = "info"
-      field       = "token"
-      secret_name = "METRICS_TOKEN"
-    }
-
+  github_app_token_presets = {
     release_please = {
       item_title              = "release-please-bot"
       app_id_section          = "info"
@@ -24,15 +17,26 @@ locals {
     }
   }
 
+  pat_token_presets = {
+    metrics = {
+      item_title  = "metrics-token"
+      section     = "info"
+      field       = "token"
+      secret_name = "METRICS_TOKEN"
+    }
+  }
+
   repositories = {
     repo_93e3a3b5 = {
       name = "dotfiles"
     }
     repo_6a83d2cc = {
       name = "templates"
-      changelog_approver_token = merge(local.token_presets.changelog_approver, {
-        vault_name = "dev"
-      })
+      github_app_tokens = {
+        changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
+          vault_name = "dev"
+        })
+      }
     }
     repo_247d31ce = {
       name = "container"
@@ -42,24 +46,30 @@ locals {
     }
     repo_5e6c65a5 = {
       name = "gh-terraform"
-      changelog_approver_token = merge(local.token_presets.changelog_approver, {
-        vault_name = "dev"
-      })
+      github_app_tokens = {
+        changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
+          vault_name = "dev"
+        })
+      }
     }
     repo_fe83b6f2 = {
       name = "y-writings"
-      metrics_token = merge(local.token_presets.metrics, {
-        vault_name = "dev"
-      })
+      pat_tokens = {
+        metrics = merge(local.pat_token_presets.metrics, {
+          vault_name = "dev"
+        })
+      }
     }
     repo_6e7bb53d = {
       name = "calver-beacon-action"
-      release_please_token = merge(local.token_presets.release_please, {
-        vault_name = "dev"
-      })
-      changelog_approver_token = merge(local.token_presets.changelog_approver, {
-        vault_name = "dev"
-      })
+      github_app_tokens = {
+        release_please = merge(local.github_app_token_presets.release_please, {
+          vault_name = "dev"
+        })
+        changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
+          vault_name = "dev"
+        })
+      }
     }
     repo_cf0c042d = {
       name = "oc-logger"
