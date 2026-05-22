@@ -13,3 +13,9 @@ variable "enable_metrics_token" {
   type        = bool
   default     = false
 }
+
+variable "enable_release_please_token" {
+  description = "Whether to create the release-please GitHub App Actions secret and variable for this repository."
+  type        = bool
+  default     = false
+}

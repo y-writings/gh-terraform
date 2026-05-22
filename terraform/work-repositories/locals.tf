@@ -20,7 +20,8 @@ locals {
       enable_metrics_token = true
     }
     repo_6e7bb53d = {
-      name = "calver-beacon-action"
+      name                        = "calver-beacon-action"
+      enable_release_please_token = true
     }
     repo_cf0c042d = {
       name = "oc-logger"
