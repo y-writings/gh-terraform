@@ -10,7 +10,7 @@ module "repository" {
   source   = "../modules/repository"
   for_each = local.repositories
 
-  name = each.key
+  name = each.value.name
 }
 
 module "release_please" {
@@ -19,8 +19,8 @@ module "release_please" {
 
   depends_on = [module.repository]
 
-  repository_name      = each.key
-  enable_metrics_token = each.key == "y-writings"
+  repository_name      = each.value.name
+  enable_metrics_token = try(each.value.enable_metrics_token, false)
 }
 
 module "governance_rulesets" {
@@ -29,5 +29,5 @@ module "governance_rulesets" {
 
   depends_on = [module.repository]
 
-  repository_name = each.key
+  repository_name = each.value.name
 }
