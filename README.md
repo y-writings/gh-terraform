@@ -127,7 +127,7 @@ mise run tfinit
 - `github_organization_ruleset` は使いません
 - `modules/repository` に fixed repository baseline を、`modules/governance` に repo ごとの ruleset baseline を保持します
 - `modules/release_please` に release-please / changelog approver 用の共通 Actions secret / variable baseline を保持します
-- 将来 repo を追加するときは、原則として `terraform/work-repositories/locals.tf` の `repositories` map に 1 エントリ追加します
+- 将来 repo を追加するときは、原則として `terraform/work-repositories/locals.tf` の `repositories` map に `repo_` + 8 桁 lowercase hex の stable ID で 1 エントリ追加します
 - ただし `sha_pinning_required = true` を baseline として適用するため、既存 workflow が tag / branch 参照の Action を使っている repo は事前に full-length commit SHA 参照へ寄せる必要があります
 - shared repository baseline と advanced security baseline は `terraform/modules/repository` に固定で保持します
 - GitHub Actions workflow permissions baseline も `terraform/modules/repository` に固定で保持します
@@ -144,15 +144,34 @@ mise run tfinit
 
 ```hcl
 repositories = {
-  dotfiles         = {}
-  templates        = {}
-  container        = {}
-  karabiner-config = {}
-  gh-terraform     = {}
-  y-writings       = {}
-  snapshot-tag-action = {}
-  oc-logger        = {}
-  opencode-keyflow = {}
+  repo_93e3a3b5 = {
+    name = "dotfiles"
+  }
+  repo_6a83d2cc = {
+    name = "templates"
+  }
+  repo_247d31ce = {
+    name = "container"
+  }
+  repo_7e3c6bbd = {
+    name = "karabiner-config"
+  }
+  repo_5e6c65a5 = {
+    name = "gh-terraform"
+  }
+  repo_fe83b6f2 = {
+    name                 = "y-writings"
+    enable_metrics_token = true
+  }
+  repo_6e7bb53d = {
+    name = "snapshot-tag-action"
+  }
+  repo_cf0c042d = {
+    name = "oc-logger"
+  }
+  repo_b004ad62 = {
+    name = "opencode-keyflow"
+  }
 }
 ```
 
@@ -166,8 +185,9 @@ repositories = {
 - GitHub Actions permissions baseline (`enabled` / `allowed_actions` / `sha_pinning_required`) は `terraform/modules/repository` に固定で保持します
 - release-please / changelog approver 用の repository secret / variable baseline は `terraform/modules/release_please` に保持します。`METRICS_TOKEN` のみ root module から repo 固有の適用有無を渡します
 - `visibility`: `terraform/modules/repository` に固定で保持され、root では指定しません
-- `repositories`: 管理対象 repo 名を key にした map です。value は空 object (`{}`) を指定します
+- `repositories`: stable ID を key にした map です。key は一度 apply したら原則変更せず、GitHub repository 名は `name` に指定します
 - `terraform/work-repositories/main.tf` から `y-writings` repo に対してだけ `METRICS_TOKEN` secret を追加します
+- repository rename は `name` の変更で行います。初回の stable ID 移行では `terraform/work-repositories/moved.tf` で既存 state address を移動します
 - `sha_pinning_required = true` により、managed repo の workflow で使う Action は full-length commit SHA で pin されている前提になります（reusable workflow の参照は GitHub の仕様上 tag 利用が残る場合があります）
 - Artifact and log retention は GitHub API では設定できますが、現行の Terraform GitHub provider では repository scope の設定項目として未対応のため、この repo では baseline 管理していません
 
