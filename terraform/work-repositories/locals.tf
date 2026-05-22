@@ -20,7 +20,7 @@ locals {
       enable_metrics_token = true
     }
     repo_6e7bb53d = {
-      name = "snapshot-tag-action"
+      name = "calver-beacon-action"
     }
     repo_cf0c042d = {
       name = "oc-logger"
