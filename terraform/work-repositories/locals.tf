@@ -77,5 +77,16 @@ locals {
     repo_b004ad62 = {
       name = "opencode-keyflow"
     }
+    repo_d1f71e9e = {
+      name = "driftline"
+      github_app_tokens = {
+        pull_request_creator = merge(local.github_app_token_presets.pull_request_creator, {
+          vault_name = "dev"
+        })
+        changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
+          vault_name = "dev"
+        })
+      }
+    }
   }
 }
