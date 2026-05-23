@@ -88,5 +88,16 @@ locals {
         })
       }
     }
+    repo_5fc995a0 = {
+      name = "pr-seal-action"
+      github_app_tokens = {
+        pull_request_creator = merge(local.github_app_token_presets.pull_request_creator, {
+          vault_name = "dev"
+        })
+        changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
+          vault_name = "dev"
+        })
+      }
+    }
   }
 }
