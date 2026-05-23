@@ -1,11 +1,11 @@
 locals {
   github_app_token_presets = {
-    release_please = {
-      item_title              = "release-please-bot"
+    pull_request_creator = {
+      item_title              = "pull-request-creator-bot"
       app_id_section          = "info"
       app_id_field            = "app_id"
-      private_key_secret_name = "RELEASE_PLEASE_APP_PRIVATE_KEY"
-      app_id_variable_name    = "RELEASE_PLEASE_APP_ID"
+      private_key_secret_name = "PULL_REQUEST_CREATOR_APP_PRIVATE_KEY"
+      app_id_variable_name    = "PULL_REQUEST_CREATOR_APP_ID"
     }
 
     changelog_approver = {
@@ -63,7 +63,7 @@ locals {
     repo_6e7bb53d = {
       name = "calver-beacon-action"
       github_app_tokens = {
-        release_please = merge(local.github_app_token_presets.release_please, {
+        pull_request_creator = merge(local.github_app_token_presets.pull_request_creator, {
           vault_name = "dev"
         })
         changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
