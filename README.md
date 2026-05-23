@@ -177,7 +177,7 @@ repositories = {
   repo_6e7bb53d = {
     name = "calver-beacon-action"
     github_app_tokens = {
-      release_please = merge(local.github_app_token_presets.release_please, {
+      pull_request_creator = merge(local.github_app_token_presets.pull_request_creator, {
         vault_name = "dev"
       })
       changelog_approver = merge(local.github_app_token_presets.changelog_approver, {

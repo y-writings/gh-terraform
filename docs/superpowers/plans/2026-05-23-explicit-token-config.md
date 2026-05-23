@@ -30,12 +30,12 @@ locals {
       secret_name = "METRICS_TOKEN"
     }
 
-    release_please = {
-      item_title              = "release-please-bot"
+    pull_request_creator = {
+      item_title              = "pull-request-creator-bot"
       app_id_section          = "info"
       app_id_field            = "app_id"
-      private_key_secret_name = "RELEASE_PLEASE_APP_PRIVATE_KEY"
-      app_id_variable_name    = "RELEASE_PLEASE_APP_ID"
+      private_key_secret_name = "PULL_REQUEST_CREATOR_APP_PRIVATE_KEY"
+      app_id_variable_name    = "PULL_REQUEST_CREATOR_APP_ID"
     }
   }
 
@@ -48,7 +48,7 @@ locals {
     }
     repo_6e7bb53d = {
       name = "calver-beacon-action"
-      release_please_token = merge(local.token_presets.release_please, {
+      pull_request_creator_token = merge(local.token_presets.pull_request_creator, {
         vault_name = "dev"
       })
     }
@@ -62,7 +62,7 @@ Change the `module "release_please"` inputs to:
 
 ```hcl
   metrics_token        = try(each.value.metrics_token, null)
-  release_please_token = try(each.value.release_please_token, null)
+  pull_request_creator_token = try(each.value.pull_request_creator_token, null)
 ```
 
 ### Task 2: Module Variables And Resource Logic
@@ -73,7 +73,7 @@ Change the `module "release_please"` inputs to:
 
 - [ ] **Step 1: Replace boolean variables with nullable complete objects**
 
-Define `metrics_token` and `release_please_token` as nullable object variables with no default.
+Define `metrics_token` and `pull_request_creator_token` as nullable object variables with no default.
 
 - [ ] **Step 2: Remove module token metadata defaults**
 
@@ -81,11 +81,11 @@ Remove fixed `vault_name`, release-please item metadata, and metrics token metad
 
 - [ ] **Step 3: Gate optional data sources and resources by object presence**
 
-Use `count = var.release_please_token != null ? 1 : 0` for release-please 1Password data and GitHub resources. Use `count = var.metrics_token != null ? 1 : 0` for metrics 1Password data and GitHub secret.
+Use `count = var.pull_request_creator_token != null ? 1 : 0` for pull request creator 1Password data and GitHub resources. Use `count = var.metrics_token != null ? 1 : 0` for metrics 1Password data and GitHub secret.
 
 - [ ] **Step 4: Read values from the supplied objects**
 
-Use `var.release_please_token.vault_name`, `var.release_please_token.item_title`, `var.release_please_token.app_id_section`, `var.release_please_token.app_id_field`, `var.release_please_token.private_key_secret_name`, `var.release_please_token.app_id_variable_name`, and the equivalent `metrics_token` fields.
+Use `var.pull_request_creator_token.vault_name`, `var.pull_request_creator_token.item_title`, `var.pull_request_creator_token.app_id_section`, `var.pull_request_creator_token.app_id_field`, `var.pull_request_creator_token.private_key_secret_name`, `var.pull_request_creator_token.app_id_variable_name`, and the equivalent `metrics_token` fields.
 
 ### Task 3: Docs And Verification
 
@@ -94,7 +94,7 @@ Use `var.release_please_token.vault_name`, `var.release_please_token.item_title`
 
 - [ ] **Step 1: Update README examples and behavior notes**
 
-Replace `enable_metrics_token` and `enable_release_please_token` examples with `metrics_token = merge(...)` and `release_please_token = merge(...)` examples. Update behavior text to say optional token objects control creation.
+Replace `enable_metrics_token` and `enable_pull_request_creator_token` examples with `metrics_token = merge(...)` and `pull_request_creator_token = merge(...)` examples. Update behavior text to say optional token objects control creation.
 
 - [ ] **Step 2: Format Terraform**
 
