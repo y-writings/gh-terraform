@@ -13,8 +13,8 @@ module "repository" {
   name = each.value.name
 }
 
-module "release_please" {
-  source   = "../modules/release_please"
+module "github_actions_credentials" {
+  source   = "../modules/github_actions_credentials"
   for_each = local.repositories
 
   depends_on = [module.repository]
