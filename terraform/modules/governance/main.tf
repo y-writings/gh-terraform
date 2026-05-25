@@ -35,11 +35,15 @@ resource "github_repository_ruleset" "main_default" {
       required_review_thread_resolution = true
     }
 
-    required_code_scanning {
-      required_code_scanning_tool {
-        tool                      = "CodeQL"
-        alerts_threshold          = "errors_and_warnings"
-        security_alerts_threshold = "high_or_higher"
+    dynamic "required_code_scanning" {
+      for_each = var.enable_codeql ? [1] : []
+
+      content {
+        required_code_scanning_tool {
+          tool                      = "CodeQL"
+          alerts_threshold          = "errors_and_warnings"
+          security_alerts_threshold = "high_or_higher"
+        }
       }
     }
   }

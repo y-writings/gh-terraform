@@ -61,7 +61,8 @@ locals {
       }
     }
     repo_6e7bb53d = {
-      name = "calver-beacon-action"
+      name          = "calver-beacon-action"
+      enable_codeql = true
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
@@ -74,14 +75,16 @@ locals {
       name = "opencode-keyflow"
     }
     repo_d1f71e9e = {
-      name = "driftline"
+      name          = "driftline"
+      enable_codeql = true
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
     repo_5fc995a0 = {
-      name = "pr-seal-action"
+      name          = "pr-seal-action"
+      enable_codeql = true
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
