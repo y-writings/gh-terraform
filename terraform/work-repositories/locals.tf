@@ -53,12 +53,6 @@ locals {
     }
     repo_fe83b6f2 = {
       name = "y-writings"
-      github_app_tokens = {
-        pr_approver = local.github_app_token_presets.pr_approver
-      }
-      pat_tokens = {
-        metrics = local.pat_token_presets.metrics
-      }
     }
     repo_6e7bb53d = {
       name          = "calver-beacon-action"
