@@ -147,9 +147,7 @@ repositories = {
   repo_6a83d2cc = {
     name = "templates"
     github_app_tokens = {
-      changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
-        vault_name = "dev"
-      })
+      pr_approver = local.github_app_token_presets.pr_approver
     }
   }
   repo_247d31ce = {
@@ -161,28 +159,23 @@ repositories = {
   repo_5e6c65a5 = {
     name = "gh-terraform"
     github_app_tokens = {
-      changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
-        vault_name = "dev"
-      })
+      pr_approver = local.github_app_token_presets.pr_approver
     }
   }
   repo_fe83b6f2 = {
     name = "y-writings"
+    github_app_tokens = {
+      pr_approver = local.github_app_token_presets.pr_approver
+    }
     pat_tokens = {
-      metrics = merge(local.pat_token_presets.metrics, {
-        vault_name = "dev"
-      })
+      metrics = local.pat_token_presets.metrics
     }
   }
   repo_6e7bb53d = {
     name = "calver-beacon-action"
     github_app_tokens = {
-      pull_request_creator = merge(local.github_app_token_presets.pull_request_creator, {
-        vault_name = "dev"
-      })
-      changelog_approver = merge(local.github_app_token_presets.changelog_approver, {
-        vault_name = "dev"
-      })
+      pr_creator  = local.github_app_token_presets.pr_creator
+      pr_approver = local.github_app_token_presets.pr_approver
     }
   }
   repo_cf0c042d = {
