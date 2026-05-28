@@ -84,5 +84,12 @@ locals {
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
+    repo_ea2e4c1b = {
+      name = "gh-usecase"
+      github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
+        pr_approver = local.github_app_token_presets.pr_approver
+      }
+    }
   }
 }
