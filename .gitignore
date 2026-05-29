@@ -48,4 +48,5 @@ terraform.rc
 backend.hcl
 
 .gh
+.worktrees/
 .opencode/plugins/entire.ts
