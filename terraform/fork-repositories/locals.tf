@@ -16,5 +16,9 @@ locals {
       source_owner = "code-yeongyu"
       source_repo  = "oh-my-openagent"
     },
+    {
+      source_owner = "suzuki-shunsuke"
+      source_repo  = "pinact"
+    },
   ]
 }
