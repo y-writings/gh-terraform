@@ -1,3 +1,6 @@
+[tools]
+go = "1.26.3"
+
 [tasks.tfbackend]
 description = "Generate Terraform backend configs from 1Password"
 hide = true
@@ -28,6 +31,10 @@ run = ["terraform -chdir=terraform/work-repositories plan"]
 [tasks."work:apply"]
 description = "Run Terraform apply for managed working repositories"
 run = ["terraform -chdir=terraform/work-repositories apply"]
+
+[tasks."work:add-repo"]
+description = "Add a managed working repository to Terraform locals"
+run = ["go -C scripts/add-work-repository run . ../../terraform/work-repositories/locals.tf"]
 
 [tasks."fork:plan"]
 description = "Run Terraform plan for managed fork repositories"
