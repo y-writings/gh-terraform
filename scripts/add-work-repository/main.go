@@ -139,8 +139,10 @@ func validateRepositoryName(name string, existing map[string]struct{}) error {
 	if !repositoryNamePattern.MatchString(name) {
 		return fmt.Errorf("repository name must be 1-100 characters and contain only letters, numbers, dots, underscores, or hyphens")
 	}
-	if _, ok := existing[name]; ok {
-		return fmt.Errorf("repository already exists: %s", name)
+	for existingName := range existing {
+		if strings.EqualFold(existingName, name) {
+			return fmt.Errorf("repository already exists: %s", existingName)
+		}
 	}
 	return nil
 }

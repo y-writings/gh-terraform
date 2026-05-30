@@ -189,6 +189,7 @@ func TestValidateRepositoryName(t *testing.T) {
 		{name: "", wantErr: "repository name is required"},
 		{name: "   ", wantErr: "repository name is required"},
 		{name: "existing-repo", wantErr: "repository already exists"},
+		{name: "Existing-Repo", wantErr: "repository already exists"},
 		{name: "contains space", wantErr: "repository name must be 1-100 characters and contain only letters, numbers, dots, underscores, or hyphens"},
 		{name: strings.Repeat("a", 101), wantErr: "repository name must be 1-100 characters and contain only letters, numbers, dots, underscores, or hyphens"},
 	}
