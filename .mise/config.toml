@@ -27,10 +27,25 @@ run = [
 [tasks.tfcheck]
 description = "Check Terraform formatting and validate root modules"
 run = [
+  { task = "tfcheck:require-init" },
   "terraform fmt -check -recursive",
   "terraform -chdir=terraform/work-repositories validate",
   "terraform -chdir=terraform/fork-repositories validate"
 ]
+
+[tasks."tfcheck:require-init"]
+hide = true
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+for root_module in terraform/work-repositories terraform/fork-repositories; do
+  if [ ! -f "$root_module/.terraform/terraform.tfstate" ] || [ ! -f "$root_module/.terraform/modules/modules.json" ] || [ ! -d "$root_module/.terraform/providers" ]; then
+    printf '%s\n' 'Terraform root modules are not initialized. Run `mise run tfinit` before `mise run tfcheck`.' >&2
+    exit 1
+  fi
+done
+'''
 
 [tasks."work:plan"]
 description = "Run Terraform plan for managed working repositories"
