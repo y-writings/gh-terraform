@@ -1,20 +1,37 @@
 # gh-terraform
 
-personal account 配下の複数 GitHub リポジトリに、同一の統制ルールを Terraform で適用するための構成です。
+personal account (`y-writings`) 配下の GitHub リポジトリを Terraform で管理します。
 
 ## 前提
 
 - Terraform `>= 1.7.0`
-- GitHub provider `integrations/github ~> 6.0`
-- 1Password provider `1Password/onepassword ~> 3.3` (`work-repositories` のみ)
-- 1Password CLI `op` (`backend.hcl` 生成用)
-- `mise` による task 実行環境
+- `mise`
 - `GITHUB_TOKEN`
-- GCS backend 用 bucket 名を保存した 1Password item
+- GCS backend bucket
+- 1Password CLI `op`
 
-GCS backend 用 bucket が未作成の場合は、`scripts/create-bucket/snippets.md` のコマンド例と `scripts/create-bucket/lifecycle.json` を使って先に bucket を用意します。
+GCS backend bucket: `scripts/create-bucket/`
 
-`mise run tfinit` は `op inject` で `backend.hcl.tpl` から ignored な `backend.hcl` を生成してから、各 root module を初期化します。事前に 1Password CLI でサインインし、`op://dev/terraform-gcs-backend/bucket` で GCS backend bucket 名を読めるようにしておきます。
+## 構成
+
+```text
+terraform/
+├── work-repositories/       # 通常の作業リポジトリ用 root module
+├── fork-repositories/       # fork リポジトリ用 root module
+└── modules/
+    ├── repository/          # repository 共通設定
+    ├── governance/          # 通常 repo の ruleset
+    ├── github_actions_credentials/
+    └── fork_governance/     # fork repo 向けの最小 governance
+```
+
+## work repo 追加
+
+```bash
+mise run work:add-repo
+```
+
+## 初期化
 
 ```bash
 cp terraform/work-repositories/terraform.tfvars.example terraform/work-repositories/terraform.tfvars
@@ -22,346 +39,26 @@ op signin
 mise run tfinit
 ```
 
-## ディレクトリ構成
+## Plan / Apply
 
-```text
-.
-├── terraform/
-│   ├── work-repositories/         # 自分の作業リポジトリ用 root module / state
-│   │   ├── main.tf                # provider / module 呼び出し
-│   │   ├── locals.tf              # 管理対象リポジトリ一覧
-│   │   ├── versions.tf            # Terraform / provider のバージョン制約
-│   │   └── terraform.tfvars.example
-│   ├── fork-repositories/         # fork リポジトリ用 root module / state
-│   │   ├── main.tf                # provider / fork repository resource
-│   │   ├── locals.tf              # fork 元リポジトリ一覧
-│   │   └── versions.tf            # Terraform / provider のバージョン制約
-│   ├── modules/
-│   │   ├── governance/
-│   │   │   ├── main.tf            # github_repository_ruleset と共通 ruleset baseline
-│   │   │   ├── variables.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── versions.tf
-│   │   ├── github_actions_credentials/
-│   │   │   ├── main.tf            # 1Password 由来の GitHub Actions secret / variable
-│   │   │   ├── variables.tf
-│   │   │   └── versions.tf
-│   │   └── repository/
-│   │       ├── main.tf            # fixed github_repository baseline
-│   │       ├── variables.tf
-│   │       ├── outputs.tf
-│   │       └── versions.tf
-├── .github/
-├── .mise/
-│   ├── config.toml                # Terraform 実行 task
-│   └── config.baseline.toml       # hook / pin / scan 用 baseline task
-├── scripts/
-│   └── create-bucket/             # GCS backend bucket 作成メモ
-├── .commitlintrc.yaml
-├── lefthook.yaml
-└── release-please-config.json
-```
-
-## この構成で管理するもの
-
-- personal account (`y-writings`) 配下の複数リポジトリ
-- 各 repo 共通の `main-default` repository ruleset
-  - `~DEFAULT_BRANCH` に対する creation / update / deletion 制限
-  - linear history 必須
-  - force push 防止
-  - pull request 必須
-- `github_repository` による repo 設定
-  - fixed public visibility
-  - issues / wiki / merge method / auto-merge
-  - GitHub Actions workflow permissions
-  - GitHub Actions permissions
-  - GitHub App / PAT 由来の GitHub Actions secret / variable
-  - module-owned governance baseline
-
-### 現在採用している統一 baseline
-
-- Repository ruleset (`main-default`)
-  - `~DEFAULT_BRANCH`
-  - Pull request 必須
-  - 承認 1 件必須
-  - squash merge のみ許可
-  - stale review dismissal 有効
-  - review thread resolution 必須
-  - creation / update / deletion 制限
-  - linear history 必須
-  - force push 防止
-  - CodeQL 必須 (`errors_and_warnings` / `high_or_higher`)
-- Security baseline
-  - Dependabot alerts: `enabled`
-  - Secret scanning: `enabled`
-  - Push protection: `enabled`
-  - `terraform/modules/repository` が保持し、root input では上書きしない
-- General repository baseline
-  - Wiki: `enabled`
-  - Issues: `enabled`
-  - Delete branch on merge: `enabled`
-  - Merge commit: `disabled`
-  - Squash merge: `enabled`
-  - Squash merge commit title: `PR_TITLE`
-  - Squash merge commit message: `PR_BODY`
-  - Rebase merge: `disabled`
-  - Auto-merge: `enabled`
-  - Default workflow permissions: `write`
-  - Allow GitHub Actions to create and approve pull requests: `enabled`
-  - Actions permissions: `enabled`
-  - Allowed actions and reusable workflows: `all`
-  - Require actions to be pinned to a full-length commit SHA: `enabled`
-  - `terraform/modules/repository` が保持し、root input では上書きしない
-
-## root module 分割方針
-
-- `terraform/work-repositories` は自分の作業リポジトリ用の root module です
-- `terraform/fork-repositories` は fork リポジトリ用の root module です
-- 共有 module は `terraform/modules` に置き、root module から相対パスで参照します
-- root module ごとに Terraform の実行ディレクトリと state を分けます
-- fork リポジトリ管理では、fork 作成自体を `github_repository` の `fork = true` / `source_owner` / `source_repo` で管理します
-
-## personal account 前提での設計方針
-
-- `github_organization_ruleset` は使いません
-- `modules/repository` に fixed repository baseline を、`modules/governance` に repo ごとの ruleset baseline を保持します
-- `modules/github_actions_credentials` に GitHub App / PAT 由来の GitHub Actions secret / variable を保持します
-- 将来 repo を追加するときは、原則として `terraform/work-repositories/locals.tf` の `repositories` map に `repo_` + 8 桁 lowercase hex の stable ID で 1 エントリ追加します
-- ただし `sha_pinning_required = true` を baseline として適用するため、既存 workflow が tag / branch 参照の Action を使っている repo は事前に full-length commit SHA 参照へ寄せる必要があります
-- shared repository baseline と advanced security baseline は `terraform/modules/repository` に固定で保持します
-- GitHub Actions workflow permissions baseline も `terraform/modules/repository` に固定で保持します
-- GitHub Actions permissions baseline も `terraform/modules/repository` に固定で保持します
-- GitHub App token は `terraform/modules/github_actions_credentials` が root module から渡された `github_app_tokens` map の 1Password 参照先から取得し、private key を secret、app id を variable として repo に適用します
-- PAT token は `terraform/modules/github_actions_credentials` が root module から渡された `pat_tokens` map の 1Password 参照先から取得し、secret として repo に適用します
-- governance のルール内容は module 内に固定で保持し、root input では変更できません
-- fork リポジトリ管理は最小構成とし、通常リポジトリ用の governance / GitHub Actions credentials baseline は適用しません
-- 既存 repo や ruleset を state に載せる必要がある場合は Terraform CLI の `import` を使います
-
-## 管理対象リポジトリ
-
-```hcl
-repositories = {
-  repo_93e3a3b5 = {
-    name = "dotfiles"
-  }
-  repo_6a83d2cc = {
-    name = "templates"
-    github_app_tokens = {
-      pr_approver = local.github_app_token_presets.pr_approver
-    }
-  }
-  repo_247d31ce = {
-    name = "container"
-  }
-  repo_7e3c6bbd = {
-    name = "karabiner-config"
-  }
-  repo_5e6c65a5 = {
-    name = "gh-terraform"
-    github_app_tokens = {
-      pr_approver = local.github_app_token_presets.pr_approver
-    }
-  }
-  repo_fe83b6f2 = {
-    name = "y-writings"
-    github_app_tokens = {
-      pr_approver = local.github_app_token_presets.pr_approver
-    }
-    pat_tokens = {
-      metrics = local.pat_token_presets.metrics
-    }
-  }
-  repo_6e7bb53d = {
-    name = "calver-beacon-action"
-    github_app_tokens = {
-      pr_creator  = local.github_app_token_presets.pr_creator
-      pr_approver = local.github_app_token_presets.pr_approver
-    }
-  }
-  repo_cf0c042d = {
-    name = "oc-logger"
-  }
-  repo_b004ad62 = {
-    name = "opencode-keyflow"
-  }
-}
-```
-
-`terraform/work-repositories/main.tf` では provider の owner を `y-writings` に固定し、`terraform/work-repositories/locals.tf` で管理対象 repo 一覧を保持します。
-
-### repositories の意味
-
-- shared repository baseline (`has_wiki` / `has_issues` / merge method defaults / `allow_auto_merge` / `delete_branch_on_merge`) は `terraform/modules/repository` に固定で保持します
-- advanced security baseline (`Dependabot alerts` / `Secret scanning` / `Push protection`) は `terraform/modules/repository` に固定で保持します
-- GitHub Actions workflow permissions baseline (`default_workflow_permissions` / `can_approve_pull_request_reviews`) は `terraform/modules/repository` に固定で保持します
-- GitHub Actions permissions baseline (`enabled` / `allowed_actions` / `sha_pinning_required`) は `terraform/modules/repository` に固定で保持します
-- GitHub Actions secret / variable 用の credential 同期は `terraform/modules/github_actions_credentials` に保持します。GitHub App token は `github_app_tokens`、PAT token は `pat_tokens` として root module から repo 固有の完全な token object を渡し、map に entry がある場合だけ作成します
-- `visibility`: `terraform/modules/repository` に固定で保持され、root では指定しません
-- `repositories`: stable ID を key にした map です。key は一度 apply したら原則変更せず、GitHub repository 名は `name` に指定します
-- `terraform/work-repositories/main.tf` から `github_app_tokens` を持つ repo に対してだけ GitHub App 用 secret / variable を追加します
-- `terraform/work-repositories/main.tf` から `pat_tokens` を持つ repo に対してだけ PAT 由来の secret を追加します
-- repository rename は `name` の変更で行います。初回の stable ID 移行では `terraform/work-repositories/moved.tf` で既存 state address を移動します
-- `sha_pinning_required = true` により、managed repo の workflow で使う Action は full-length commit SHA で pin されている前提になります（reusable workflow の参照は GitHub の仕様上 tag 利用が残る場合があります）
-- Artifact and log retention は GitHub API では設定できますが、現行の Terraform GitHub provider では repository scope の設定項目として未対応のため、この repo では baseline 管理していません
-
-## 使い方
-
-1. `terraform/work-repositories/locals.tf` の `repositories` を必要に応じて調整します
-2. 1Password CLI で `op://dev/terraform-gcs-backend/bucket` から GCS backend bucket 名を読めるようにします
-3. `GITHUB_TOKEN` を設定します
-4. 1Password desktop app 認証を使う場合は `terraform/work-repositories/terraform.tfvars` に `onepassword_account` を設定し、アプリ側で **Integrate with other apps** を有効にします
-5. 既存 repo や既存 `main-default` ruleset を state に載せる必要がある場合は Terraform CLI の `import` を使います
-6. `mise run work:plan` で差分を確認し、問題なければ `mise run work:apply` を実行します
+work repo:
 
 ```bash
 export GITHUB_TOKEN="<your-token>"
-cp terraform/work-repositories/terraform.tfvars.example terraform/work-repositories/terraform.tfvars
-op signin
-mise run tfinit
 mise run work:plan
 mise run work:apply
 ```
 
-backend は `terraform/work-repositories/backend.tf` で `backend "gcs" {}` の空ブロックだけを宣言し、bucket / prefix などの値は `terraform init -backend-config=...` で外から注入します。`mise run tfinit` は先に `mise run tfbackend` を実行し、`terraform/work-repositories/backend.hcl.tpl` と `terraform/fork-repositories/backend.hcl.tpl` から `backend.hcl` を生成して両方の root module を初期化します。生成された `backend.hcl` は `.gitignore` で除外しています。
-
-### 1Password CLI backend setup
-
-`op inject` はテンプレート内の `{{ op://... }}` 参照を 1Password の値で置き換えます。この repo では次の参照を使います。
-
-```text
-op://dev/terraform-gcs-backend/bucket
-```
-
-必要なセットアップは次の通りです。
-
-1. 1Password CLI をインストールします
-2. `op signin` で利用する 1Password account にサインインします
-3. vault `dev` に item `terraform-gcs-backend` を作成します
-4. その item に field `bucket` を追加し、GCS backend bucket 名を保存します
-5. 1Password desktop app 連携で認証する場合は、アプリ側で **Integrate with other apps** を有効にします
-6. `op read op://dev/terraform-gcs-backend/bucket` で値が読めることを確認します
-
-生成だけ確認したい場合は次を実行します。
-
-```bash
-mise run tfbackend
-```
-
-1Password CLI を使わない環境では、従来通り `backend.hcl.example` をコピーして `backend.hcl` を手動作成し、`tfinit:local` で初期化できます。
-
-```bash
-cp terraform/work-repositories/backend.hcl.example terraform/work-repositories/backend.hcl
-cp terraform/fork-repositories/backend.hcl.example terraform/fork-repositories/backend.hcl
-mise run tfinit:local
-```
-
-`terraform/work-repositories/terraform.tfvars` には次のように設定します。
-
-```hcl
-onepassword_account = "my.1password.com"
-```
-
-生成後の `terraform/work-repositories/backend.hcl` と `terraform/fork-repositories/backend.hcl` はそれぞれ次のような内容になります。
-
-```hcl
-bucket = "YOUR_TFSTATE_BUCKET"
-prefix = "work-repositories"
-```
-
-```hcl
-bucket = "YOUR_TFSTATE_BUCKET"
-prefix = "fork-repositories"
-```
-
-`.mise/config.toml` の `work:plan` / `work:apply` task は内部で `terraform -chdir=terraform/work-repositories plan` / `terraform -chdir=terraform/work-repositories apply` を実行します。
-
-補助 task は `.mise/config.baseline.toml` に定義しています。
-
-```bash
-mise run baseline:setup
-mise run baseline:pin
-mise run baseline:scan
-```
-
-- `baseline:setup`: Git hooks を作り直し、`lefthook` と `entire` を有効化します
-- `baseline:pin`: `pinact` / `dockerfile-pin` で参照を pin します
-- `baseline:scan`: `betterleaks` で repository 全体を scan します
-
-## fork リポジトリ管理
-
-`terraform/fork-repositories` は fork 作成用の root module です。`terraform/work-repositories` とは別の実行ディレクトリとして扱うため、state も分離されます。
+fork repo:
 
 ```bash
 export GITHUB_TOKEN="<your-token>"
-mise run tfinit
 mise run fork:plan
 mise run fork:apply
 ```
 
-fork リポジトリ側も `terraform/fork-repositories/backend.tf` で `backend "gcs" {}` の空ブロックだけを宣言し、GCS backend の値は init 時の `-backend-config` で注入します。
+## Check
 
-`terraform/fork-repositories/locals.tf` には次のように fork 元を配列で指定します。fork 後の repo 名は、デフォルトでは `${source_repo}-fork` にします。repo 名が重複する場合や GitHub の repository name limit（100 文字）を超える場合は、`fork_name` で短く一意な repo 名を明示します。
-
-```hcl
-locals {
-  repositories = [
-    {
-      source_owner = "zed-industries"
-      source_repo  = "zed"
-    },
-    {
-      source_owner = "another-owner"
-      source_repo  = "zed"
-      fork_name    = "another-zed-fork"
-    },
-  ]
-}
+```bash
+mise run tfcheck
 ```
-
-`terraform/fork-repositories/main.tf` では personal account (`y-writings`) 前提で provider の owner を固定しています。`github_repository.fork` には `prevent_destroy = true` を設定し、誤って fork repo を destroy しないようにしています。
-
-fork 名はデフォルトで `${source_repo}-fork` ですが、同名 fork が衝突する場合は `fork_name` を指定します。実装上は fork 名の重複と 100 文字超過を `precondition` で弾きます。
-
-現在の fork 管理対象は次の通りです。
-
-```hcl
-repositories = [
-  {
-    source_owner = "zed-industries"
-    source_repo  = "zed"
-  },
-  {
-    source_owner = "jdx"
-    source_repo  = "mise"
-  },
-  {
-    source_owner = "anomalyco"
-    source_repo  = "opencode"
-  },
-  {
-    source_owner = "code-yeongyu"
-    source_repo  = "oh-my-openagent"
-  },
-  {
-    source_owner = "suzuki-shunsuke"
-    source_repo  = "pinact"
-  },
-]
-```
-
-## 既存 state の移行
-
-- repository 本体や既存 `main-default` ruleset を state に載せる場合は Terraform CLI の `import` を使います
-- baseline は fully module-owned のため、既存の外部入力や CI で baseline の個別設定を渡している場合は削除してください
-- この構成では governance の repo ごと override は持たないため、plan では統一 baseline への収束差分が出ます
-
-## provider 上の制約メモ
-
-- `github_repository_ruleset` は repo 単位 resource のため、personal account では `for_each` で横展開します
-- `github_repository_ruleset` の import は `<repository>:<ruleset_id>` 形式です
-- `evaluate` enforcement は organization ruleset 向けであり、personal account では `active` / `disabled` を使います
-- live baseline の取り込み時は、既存 ruleset を import してから共通 baseline に寄せます
-- GitHub ruleset の `code_quality` ルールは現行 Terraform provider では表現できません。既存 repo にある場合は manual drift として扱い、apply 前後で GitHub 側確認が必要です
-- GitHub Actions の Artifact and log retention も GitHub API では設定可能ですが、現行 Terraform GitHub provider では repository scope の resource / attribute がないため manual drift として扱います
-- 現在の module-owned governance baseline は public repository 前提です。personal account では managed repositories を public 前提で扱ってください
-- `terraform/modules/github_actions_credentials` は optional token について root module から渡された 1Password vault / item / field を参照します
