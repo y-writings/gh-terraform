@@ -24,6 +24,14 @@ run = [
   "terraform -chdir=terraform/fork-repositories init -backend-config=backend.hcl"
 ]
 
+[tasks.tfcheck]
+description = "Check Terraform formatting and validate root modules"
+run = [
+  "terraform fmt -check -recursive",
+  "terraform -chdir=terraform/work-repositories validate",
+  "terraform -chdir=terraform/fork-repositories validate"
+]
+
 [tasks."work:plan"]
 description = "Run Terraform plan for managed working repositories"
 run = ["terraform -chdir=terraform/work-repositories plan"]
