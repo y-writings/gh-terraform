@@ -1,2 +1,0 @@
-bucket = "YOUR_TFSTATE_BUCKET"
-prefix = "work-repositories"
