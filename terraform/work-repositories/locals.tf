@@ -91,5 +91,13 @@ locals {
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
+    repo_ae11b842 = {
+      name          = "xapi-usecase"
+      enable_codeql = true
+      github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
+        pr_approver = local.github_app_token_presets.pr_approver
+      }
+    }
   }
 }
