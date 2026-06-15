@@ -36,6 +36,7 @@ locals {
     repo_6a83d2cc = {
       name = "templates"
       github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
@@ -48,6 +49,7 @@ locals {
     repo_5e6c65a5 = {
       name = "gh-terraform"
       github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
