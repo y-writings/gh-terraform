@@ -105,5 +105,14 @@ locals {
     repo_94c3172f = {
       name = "gh-usecase-test"
     }
+
+    repo_509e6c86 = {
+      name          = "entire-analysis"
+      enable_codeql = true
+      github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
+        pr_approver = local.github_app_token_presets.pr_approver
+      }
+    }
   }
 }
