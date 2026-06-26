@@ -57,8 +57,10 @@ locals {
       name = "y-writings"
     }
     repo_6e7bb53d = {
-      name          = "calver-beacon-action"
-      enable_codeql = true
+      name = "calver-beacon-action"
+      codeql = {
+        languages = ["go"]
+      }
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
@@ -71,16 +73,20 @@ locals {
       name = "opencode-keyflow"
     }
     repo_d1f71e9e = {
-      name          = "driftline"
-      enable_codeql = true
+      name = "driftline"
+      codeql = {
+        languages = ["go"]
+      }
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
     repo_5fc995a0 = {
-      name          = "pr-seal-action"
-      enable_codeql = true
+      name = "pr-seal-action"
+      codeql = {
+        languages = ["go"]
+      }
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
@@ -88,14 +94,19 @@ locals {
     }
     repo_ea2e4c1b = {
       name = "gh-usecase"
+      codeql = {
+        languages = ["go"]
+      }
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
     repo_ae11b842 = {
-      name          = "xapi-usecase"
-      enable_codeql = true
+      name = "xapi-usecase"
+      codeql = {
+        languages = ["go"]
+      }
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver
@@ -107,8 +118,10 @@ locals {
     }
 
     repo_509e6c86 = {
-      name          = "entire-analysis"
-      enable_codeql = true
+      name = "entire-analysis"
+      codeql = {
+        languages = ["go"]
+      }
       github_app_tokens = {
         pr_creator  = local.github_app_token_presets.pr_creator
         pr_approver = local.github_app_token_presets.pr_approver

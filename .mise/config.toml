@@ -59,6 +59,10 @@ run = ["terraform -chdir=terraform/work-repositories apply"]
 description = "Add a managed working repository to Terraform locals"
 run = ["go -C scripts/add-work-repository run . ../../terraform/work-repositories/locals.tf"]
 
+[tasks."work:codeql"]
+description = "Reconcile CodeQL default setup for managed working repositories"
+run = ["go -C scripts/reconcile-codeql run . --owner y-writings ../../terraform/work-repositories/locals.tf"]
+
 [tasks."fork:plan"]
 description = "Run Terraform plan for managed fork repositories"
 run = ["terraform -chdir=terraform/fork-repositories plan"]
