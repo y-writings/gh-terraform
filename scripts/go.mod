@@ -1,4 +1,4 @@
-module github.com/y-writings/add-work-repository
+module github.com/y-writings/gh-terraform/scripts
 
 go 1.25
 
