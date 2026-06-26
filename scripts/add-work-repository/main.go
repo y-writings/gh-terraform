@@ -20,7 +20,7 @@ import (
 
 type repositoryInput struct {
 	Name            string
-	EnableCodeQL    bool
+	CodeQLLanguages []string
 	GitHubAppTokens []string
 	PATTokens       []string
 }
@@ -41,6 +41,8 @@ type runDeps struct {
 }
 
 var repositoryNamePattern = regexp.MustCompile(`^[A-Za-z0-9._-]{1,100}$`)
+
+var codeqlLanguageOrder = []string{"actions", "c-cpp", "csharp", "go", "java-kotlin", "javascript-typescript", "python", "ruby", "swift"}
 
 var githubAppTokenOrder = []string{"pr_creator", "pr_approver"}
 
@@ -158,9 +160,10 @@ func promptRepositoryInput(existingNames map[string]struct{}) (repositoryInput, 
 				Validate(func(value string) error {
 					return validateRepositoryName(strings.TrimSpace(value), existingNames)
 				}),
-			huh.NewConfirm().
-				Title("Enable CodeQL").
-				Value(&input.EnableCodeQL),
+			huh.NewMultiSelect[string]().
+				Title("CodeQL languages").
+				Options(codeqlLanguageOptions()...).
+				Value(&input.CodeQLLanguages),
 			huh.NewMultiSelect[string]().
 				Title("GitHub App tokens").
 				Options(
@@ -404,10 +407,10 @@ func buildRepositoryValueTokens(input repositoryInput) hclwrite.Tokens {
 		},
 	}
 
-	if input.EnableCodeQL {
+	if tokens := buildCodeQLTokens(input.CodeQLLanguages); len(tokens) > 0 {
 		attrs = append(attrs, hclwrite.ObjectAttrTokens{
-			Name:  hclwrite.TokensForIdentifier("enable_codeql"),
-			Value: hclwrite.TokensForValue(cty.BoolVal(true)),
+			Name:  hclwrite.TokensForIdentifier("codeql"),
+			Value: tokens,
 		})
 	}
 
@@ -428,18 +431,36 @@ func buildRepositoryValueTokens(input repositoryInput) hclwrite.Tokens {
 	return hclwrite.TokensForObject(attrs)
 }
 
-func buildPresetTokenMap(selected []string, allowed []string, presetName string) hclwrite.Tokens {
-	selectedSet := make(map[string]struct{}, len(selected))
-	for _, name := range selected {
-		selectedSet[name] = struct{}{}
+func codeqlLanguageOptions() []huh.Option[string] {
+	options := make([]huh.Option[string], 0, len(codeqlLanguageOrder))
+	for _, language := range codeqlLanguageOrder {
+		options = append(options, huh.NewOption(language, language))
+	}
+	return options
+}
+
+func buildCodeQLTokens(selected []string) hclwrite.Tokens {
+	languages := selectedInAllowedOrder(selected, codeqlLanguageOrder)
+	if len(languages) == 0 {
+		return nil
 	}
 
-	attrs := make([]hclwrite.ObjectAttrTokens, 0, len(allowed))
-	for _, name := range allowed {
-		if _, ok := selectedSet[name]; !ok {
-			continue
-		}
+	values := make([]cty.Value, 0, len(languages))
+	for _, language := range languages {
+		values = append(values, cty.StringVal(language))
+	}
 
+	return hclwrite.TokensForObject([]hclwrite.ObjectAttrTokens{
+		{
+			Name:  hclwrite.TokensForIdentifier("languages"),
+			Value: hclwrite.TokensForValue(cty.ListVal(values)),
+		},
+	})
+}
+
+func buildPresetTokenMap(selected []string, allowed []string, presetName string) hclwrite.Tokens {
+	attrs := make([]hclwrite.ObjectAttrTokens, 0, len(allowed))
+	for _, name := range selectedInAllowedOrder(selected, allowed) {
 		attrs = append(attrs, hclwrite.ObjectAttrTokens{
 			Name: hclwrite.TokensForIdentifier(name),
 			Value: hclwrite.TokensForTraversal(hcl.Traversal{
@@ -455,4 +476,19 @@ func buildPresetTokenMap(selected []string, allowed []string, presetName string)
 	}
 
 	return hclwrite.TokensForObject(attrs)
+}
+
+func selectedInAllowedOrder(selected []string, allowed []string) []string {
+	selectedSet := make(map[string]struct{}, len(selected))
+	for _, name := range selected {
+		selectedSet[name] = struct{}{}
+	}
+
+	ordered := make([]string, 0, len(selectedSet))
+	for _, name := range allowed {
+		if _, ok := selectedSet[name]; ok {
+			ordered = append(ordered, name)
+		}
+	}
+	return ordered
 }

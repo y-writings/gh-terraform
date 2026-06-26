@@ -31,5 +31,5 @@ module "governance_rulesets" {
   depends_on = [module.repository]
 
   repository_name = each.value.name
-  enable_codeql   = try(each.value.enable_codeql, false)
+  enable_codeql   = try(each.value.codeql, null) != null
 }

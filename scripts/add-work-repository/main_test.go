@@ -250,14 +250,16 @@ func TestRenderRepositoryEntryWithOptions(t *testing.T) {
 
 	got := renderRepositoryEntry("repo_ab12cd34", repositoryInput{
 		Name:            "new-repo",
-		EnableCodeQL:    true,
+		CodeQLLanguages: []string{"go"},
 		GitHubAppTokens: []string{"pr_approver", "pr_creator"},
 		PATTokens:       []string{"metrics"},
 	})
 	want := strings.TrimSpace(`
 repo_ab12cd34 = {
-  name          = "new-repo"
-  enable_codeql = true
+  name = "new-repo"
+  codeql = {
+    languages = ["go"]
+  }
   github_app_tokens = {
     pr_creator  = local.github_app_token_presets.pr_creator
     pr_approver = local.github_app_token_presets.pr_approver

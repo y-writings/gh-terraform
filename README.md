@@ -39,6 +39,18 @@ mise run tfinit
 mise run work:add-repo
 ```
 
+When CodeQL languages are selected, the repository entry gets a `codeql.languages` block. That block enables the CodeQL-required ruleset in Terraform and is also used by the CodeQL reconcile task.
+
+## Reconcile CodeQL
+
+```bash
+mise run work:codeql
+```
+
+`work:codeql` reads `terraform/work-repositories/locals.tf` and runs `gh-usecase codeql-default-setup` for repositories with `codeql.languages`.
+
+This task is independent of Terraform diff. It runs only when invoked, even if `terraform plan` has no changes. The underlying `gh-usecase` command reads the current GitHub CodeQL default setup first and only PATCHes when GitHub differs from the desired languages.
+
 ## Check
 
 ```bash
@@ -53,6 +65,7 @@ work repo:
 export GITHUB_TOKEN="<your-token>"
 mise run work:plan
 mise run work:apply
+mise run work:codeql
 ```
 
 fork repo:
