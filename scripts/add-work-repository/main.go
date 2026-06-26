@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/y-writings/gh-terraform/scripts/internal/tflocals"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -221,17 +222,7 @@ func generateRepositoryKey(existing map[string]struct{}) (string, error) {
 }
 
 func readExistingRepositories(src []byte, filename string) (existingRepositories, error) {
-	file, diags := hclsyntax.ParseConfig(src, filename, hcl.Pos{Line: 1, Column: 1})
-	if diags.HasErrors() {
-		return existingRepositories{}, fmt.Errorf("parse %s: %s", filename, diags.Error())
-	}
-
-	body, ok := file.Body.(*hclsyntax.Body)
-	if !ok {
-		return existingRepositories{}, fmt.Errorf("parse %s: unexpected HCL body", filename)
-	}
-
-	repositories, err := repositoriesObjectExpression(body)
+	repositories, err := tflocals.ReadRepositories(src, filename)
 	if err != nil {
 		return existingRepositories{}, err
 	}
@@ -240,93 +231,14 @@ func readExistingRepositories(src []byte, filename string) (existingRepositories
 		Keys:  map[string]struct{}{},
 		Names: map[string]struct{}{},
 	}
-	for _, item := range repositories.Items {
-		key, ok := staticObjectKey(item.KeyExpr)
-		if !ok {
-			continue
-		}
-		existing.Keys[key] = struct{}{}
-
-		value, ok := item.ValueExpr.(*hclsyntax.ObjectConsExpr)
-		if !ok {
-			continue
-		}
-		if name, ok := repositoryNameValue(value); ok {
-			existing.Names[name] = struct{}{}
+	for _, repository := range repositories {
+		existing.Keys[repository.Key] = struct{}{}
+		if repository.Name != "" {
+			existing.Names[repository.Name] = struct{}{}
 		}
 	}
 
 	return existing, nil
-}
-
-func repositoriesObjectExpression(body *hclsyntax.Body) (*hclsyntax.ObjectConsExpr, error) {
-	for _, block := range body.Blocks {
-		if block.Type != "locals" || len(block.Labels) != 0 {
-			continue
-		}
-
-		attr, ok := block.Body.Attributes["repositories"]
-		if !ok {
-			continue
-		}
-		repositories, ok := attr.Expr.(*hclsyntax.ObjectConsExpr)
-		if !ok {
-			return nil, fmt.Errorf("locals.repositories must be an object")
-		}
-		return repositories, nil
-	}
-
-	return nil, fmt.Errorf("locals.repositories is missing")
-}
-
-func staticObjectKey(expr hclsyntax.Expression) (string, bool) {
-	switch expr := expr.(type) {
-	case *hclsyntax.ObjectConsKeyExpr:
-		return staticObjectKey(expr.Wrapped)
-	case *hclsyntax.ScopeTraversalExpr:
-		if len(expr.Traversal) != 1 {
-			return "", false
-		}
-		root, ok := expr.Traversal[0].(hcl.TraverseRoot)
-		return root.Name, ok
-	case *hclsyntax.LiteralValueExpr:
-		if expr.Val.Type() != cty.String {
-			return "", false
-		}
-		return expr.Val.AsString(), true
-	default:
-		return "", false
-	}
-}
-
-func repositoryNameValue(repository *hclsyntax.ObjectConsExpr) (string, bool) {
-	for _, item := range repository.Items {
-		key, ok := staticObjectKey(item.KeyExpr)
-		if !ok || key != "name" {
-			continue
-		}
-
-		return staticStringValue(item.ValueExpr)
-	}
-
-	return "", false
-}
-
-func staticStringValue(expr hclsyntax.Expression) (string, bool) {
-	switch expr := expr.(type) {
-	case *hclsyntax.LiteralValueExpr:
-		if expr.Val.Type() != cty.String {
-			return "", false
-		}
-		return expr.Val.AsString(), true
-	case *hclsyntax.TemplateExpr:
-		if len(expr.Parts) != 1 {
-			return "", false
-		}
-		return staticStringValue(expr.Parts[0])
-	default:
-		return "", false
-	}
 }
 
 func appendRepository(src []byte, filename string, key string, input repositoryInput) ([]byte, error) {
