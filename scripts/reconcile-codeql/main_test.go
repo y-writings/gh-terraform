@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"reflect"
 	"strings"
@@ -24,6 +25,12 @@ var multiTargetConfig = []byte(`locals {
     }
   }
 }`)
+
+type failingWriter struct{}
+
+func (failingWriter) Write(_ []byte) (int, error) {
+	return 0, errors.New("write failed")
+}
 
 func TestReadTargetsReturnsRepositoriesWithCodeQLLanguages(t *testing.T) {
 	t.Parallel()
@@ -95,22 +102,14 @@ func TestReadTargetsRejectsCodeQLWithoutLanguages(t *testing.T) {
 	}
 }
 
-func TestBuildInvocationUsesGhUsecaseCodeQLDefaultSetup(t *testing.T) {
+func TestDryRunLineDescribesPackageReconcileOperation(t *testing.T) {
 	t.Parallel()
 
-	got := buildInvocation("y-writings", codeqlTarget{Name: "repo", Languages: []string{"go", "python"}})
-	want := commandInvocation{
-		Name: "gh-usecase",
-		Args: []string{
-			"codeql-default-setup",
-			"--owner", "y-writings",
-			"--repo", "repo",
-			"--languages", "go,python",
-		},
-	}
+	got := dryRunLine("y-writings", codeqlTarget{Name: "repo", Languages: []string{"go", "python"}})
+	want := "reconcile CodeQL default setup --owner y-writings --repo repo --languages go,python"
 
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("invocation mismatch\nwant: %#v\n got: %#v", want, got)
+	if got != want {
+		t.Fatalf("dryRunLine = %q, want %q", got, want)
 	}
 }
 
@@ -127,9 +126,9 @@ func TestRunWithDepsDryRunPrintsFilteredInvocationWithoutExecuting(t *testing.T)
 			}
 			return multiTargetConfig, nil
 		},
-		runCommand: func(invocation commandInvocation) error {
+		reconcileTarget: func(ctx context.Context, owner string, target codeqlTarget) (reconcileOutput, error) {
 			runCalled = true
-			return nil
+			return reconcileOutput{}, nil
 		},
 		stdout: &stdout,
 	})
@@ -140,34 +139,73 @@ func TestRunWithDepsDryRunPrintsFilteredInvocationWithoutExecuting(t *testing.T)
 		t.Fatal("runCommand was called during dry-run")
 	}
 
-	want := "gh-usecase codeql-default-setup --owner y-writings --repo two-repo --languages go,python\n"
+	want := "reconcile CodeQL default setup --owner y-writings --repo two-repo --languages go,python\n"
 	if got := stdout.String(); got != want {
 		t.Fatalf("stdout = %q, want %q", got, want)
+	}
+}
+
+func TestRunWithDepsPrintsReconcileOutput(t *testing.T) {
+	t.Parallel()
+
+	var stdout bytes.Buffer
+	err := runWithDeps([]string{"--owner", "y-writings", "--repo", "two-repo", "locals.tf"}, runDeps{
+		readFile: func(path string) ([]byte, error) {
+			return multiTargetConfig, nil
+		},
+		reconcileTarget: func(ctx context.Context, owner string, target codeqlTarget) (reconcileOutput, error) {
+			return reconcileOutput{Owner: owner, Repo: target.Name, Changed: true}, nil
+		},
+		stdout: &stdout,
+	})
+	if err != nil {
+		t.Fatalf("runWithDeps returned error: %v", err)
+	}
+
+	for _, want := range []string{`"owner": "y-writings"`, `"repo": "two-repo"`, `"changed": true`} {
+		if !strings.Contains(stdout.String(), want) {
+			t.Fatalf("stdout = %q, want to contain %q", stdout.String(), want)
+		}
+	}
+}
+
+func TestWriteReconcileOutputReturnsWriterError(t *testing.T) {
+	t.Parallel()
+
+	err := writeReconcileOutput(failingWriter{}, reconcileOutput{Owner: "y-writings", Repo: "repo"})
+	if err == nil {
+		t.Fatal("writeReconcileOutput returned nil error")
+	}
+	if !strings.Contains(err.Error(), "write failed") {
+		t.Fatalf("error = %q, want writer error", err.Error())
 	}
 }
 
 func TestRunWithDepsAttemptsAllTargetsAndReportsFailures(t *testing.T) {
 	t.Parallel()
 
-	var invocations []commandInvocation
+	var targets []codeqlTarget
 	err := runWithDeps([]string{"--owner", "y-writings", "locals.tf"}, runDeps{
 		readFile: func(path string) ([]byte, error) {
 			return multiTargetConfig, nil
 		},
-		runCommand: func(invocation commandInvocation) error {
-			invocations = append(invocations, invocation)
-			if invocation.Args[4] == "one-repo" {
-				return errors.New("boom")
+		reconcileTarget: func(ctx context.Context, owner string, target codeqlTarget) (reconcileOutput, error) {
+			if owner != "y-writings" {
+				t.Fatalf("owner = %q", owner)
 			}
-			return nil
+			targets = append(targets, target)
+			if target.Name == "one-repo" {
+				return reconcileOutput{}, errors.New("boom")
+			}
+			return reconcileOutput{}, nil
 		},
 		stdout: &bytes.Buffer{},
 	})
 	if err == nil {
 		t.Fatal("runWithDeps returned nil error")
 	}
-	if len(invocations) != 2 {
-		t.Fatalf("invocations = %d, want 2", len(invocations))
+	if len(targets) != 2 {
+		t.Fatalf("targets = %d, want 2", len(targets))
 	}
 	if !strings.Contains(err.Error(), "one-repo") || !strings.Contains(err.Error(), "boom") {
 		t.Fatalf("error = %q, want failed repository name and cause", err.Error())
@@ -181,9 +219,9 @@ func TestRunWithDepsRejectsRepoFilterWithNoMatchingTarget(t *testing.T) {
 		readFile: func(path string) ([]byte, error) {
 			return multiTargetConfig, nil
 		},
-		runCommand: func(invocation commandInvocation) error {
-			t.Fatal("runCommand must not be called for a missing repo filter")
-			return nil
+		reconcileTarget: func(ctx context.Context, owner string, target codeqlTarget) (reconcileOutput, error) {
+			t.Fatal("reconcileTarget must not be called for a missing repo filter")
+			return reconcileOutput{}, nil
 		},
 		stdout: &bytes.Buffer{},
 	})
@@ -192,5 +230,26 @@ func TestRunWithDepsRejectsRepoFilterWithNoMatchingTarget(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "missing-repo") || !strings.Contains(err.Error(), "no CodeQL target") {
 		t.Fatalf("error = %q, want missing repo guidance", err.Error())
+	}
+}
+
+func TestReconcileTargetRejectsInvalidLanguagesBeforeCreatingClient(t *testing.T) {
+	t.Parallel()
+
+	clientCalled := false
+	reconcile := newReconcileTarget(func() (restClient, error) {
+		clientCalled = true
+		return nil, errors.New("client should not be created")
+	})
+
+	_, err := reconcile(context.Background(), "y-writings", codeqlTarget{Name: "repo", Languages: []string{"invalid"}})
+	if err == nil {
+		t.Fatal("reconcile returned nil error")
+	}
+	if !strings.Contains(err.Error(), "languages must contain only") {
+		t.Fatalf("error = %q, want language validation error", err.Error())
+	}
+	if clientCalled {
+		t.Fatal("client factory was called before input validation")
 	}
 }
