@@ -47,9 +47,9 @@ When CodeQL languages are selected, the repository entry gets a `codeql.language
 mise run work:codeql
 ```
 
-`work:codeql` reads `terraform/work-repositories/locals.tf` and runs `gh-usecase codeql-default-setup` for repositories with `codeql.languages`.
+`work:codeql` reads `terraform/work-repositories/locals.tf` and uses the `github.com/y-writings/gh-usecase/codeqldefaultsetup` package for repositories with `codeql.languages`.
 
-This task is independent of Terraform diff. It runs only when invoked, even if `terraform plan` has no changes. The underlying `gh-usecase` command reads the current GitHub CodeQL default setup first and only PATCHes when GitHub differs from the desired languages.
+This task is independent of Terraform diff. It runs only when invoked, even if `terraform plan` has no changes. The underlying reconciler reads the current GitHub CodeQL default setup first and only PATCHes when GitHub differs from the desired languages. A local `gh-usecase` binary is not required.
 
 ## Check
 

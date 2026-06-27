@@ -1,26 +1,29 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
 
+	"github.com/cli/go-gh/v2/pkg/api"
 	"github.com/y-writings/gh-terraform/scripts/internal/tflocals"
+	"github.com/y-writings/gh-usecase/codeqldefaultsetup"
 )
 
 type codeqlTarget = tflocals.CodeQLTarget
+type reconcileOutput = codeqldefaultsetup.Output
+type restClient = codeqldefaultsetup.Client
 
-type commandInvocation struct {
-	Name string
-	Args []string
-}
+type restClientFactory func() (restClient, error)
+type reconcileTargetFunc func(context.Context, string, codeqlTarget) (reconcileOutput, error)
 
 type runDeps struct {
-	readFile   func(string) ([]byte, error)
-	runCommand func(commandInvocation) error
-	stdout     io.Writer
+	readFile        func(string) ([]byte, error)
+	reconcileTarget reconcileTargetFunc
+	stdout          io.Writer
 }
 
 type runOptions struct {
@@ -39,9 +42,9 @@ func main() {
 
 func run(args []string) error {
 	return runWithDeps(args, runDeps{
-		readFile:   os.ReadFile,
-		runCommand: runShellCommand,
-		stdout:     os.Stdout,
+		readFile:        os.ReadFile,
+		reconcileTarget: newReconcileTarget(newRESTClient),
+		stdout:          os.Stdout,
 	})
 }
 
@@ -63,19 +66,24 @@ func runWithDeps(args []string, deps runDeps) error {
 
 	var failures []string
 	matched := 0
+	ctx := context.Background()
 	for _, target := range targets {
 		if options.Repo != "" && target.Name != options.Repo {
 			continue
 		}
 		matched++
 
-		invocation := buildInvocation(options.Owner, target)
 		if options.DryRun {
-			fmt.Fprintln(deps.stdout, invocation.String())
+			fmt.Fprintln(deps.stdout, dryRunLine(options.Owner, target))
 			continue
 		}
-		if err := deps.runCommand(invocation); err != nil {
+		output, err := deps.reconcileTarget(ctx, options.Owner, target)
+		if err != nil {
 			failures = append(failures, fmt.Sprintf("%s: %v", target.Name, err))
+			continue
+		}
+		if err := writeReconcileOutput(deps.stdout, output); err != nil {
+			return err
 		}
 	}
 	if options.Repo != "" && matched == 0 {
@@ -126,27 +134,53 @@ func parseArgs(args []string) (runOptions, error) {
 	return options, nil
 }
 
-func buildInvocation(owner string, target codeqlTarget) commandInvocation {
-	return commandInvocation{
-		Name: "gh-usecase",
-		Args: []string{
-			"codeql-default-setup",
-			"--owner", owner,
-			"--repo", target.Name,
-			"--languages", strings.Join(target.Languages, ","),
-		},
+func dryRunLine(owner string, target codeqlTarget) string {
+	return fmt.Sprintf(
+		"reconcile CodeQL default setup --owner %s --repo %s --languages %s",
+		owner,
+		target.Name,
+		strings.Join(target.Languages, ","),
+	)
+}
+
+func writeReconcileOutput(stdout io.Writer, output reconcileOutput) error {
+	encoded, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode reconcile output: %w", err)
+	}
+	if _, err := fmt.Fprintln(stdout, string(encoded)); err != nil {
+		return fmt.Errorf("write reconcile output: %w", err)
+	}
+	return nil
+}
+
+func newReconcileTarget(newClient restClientFactory) reconcileTargetFunc {
+	return func(ctx context.Context, owner string, target codeqlTarget) (reconcileOutput, error) {
+		input := codeqldefaultsetup.Input{
+			Owner:     owner,
+			Repo:      target.Name,
+			Languages: target.Languages,
+		}
+		if _, err := codeqldefaultsetup.Validate(input); err != nil {
+			return reconcileOutput{}, err
+		}
+
+		client, err := newClient()
+		if err != nil {
+			return reconcileOutput{}, err
+		}
+
+		return codeqldefaultsetup.Reconcile(ctx, client, input)
 	}
 }
 
-func runShellCommand(invocation commandInvocation) error {
-	cmd := exec.Command(invocation.Name, invocation.Args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func (i commandInvocation) String() string {
-	return strings.Join(append([]string{i.Name}, i.Args...), " ")
+func newRESTClient() (restClient, error) {
+	return api.NewRESTClient(api.ClientOptions{
+		Headers: map[string]string{
+			"Accept":               "application/vnd.github+json",
+			"X-GitHub-Api-Version": "2022-11-28",
+		},
+	})
 }
 
 func readTargets(src []byte, filename string) ([]codeqlTarget, error) {
