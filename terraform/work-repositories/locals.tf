@@ -127,5 +127,9 @@ locals {
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
+
+    repo_b9b990eb = {
+      name = "cloudflare-terraform"
+    }
   }
 }
