@@ -131,5 +131,9 @@ locals {
     repo_b9b990eb = {
       name = "cloudflare-terraform"
     }
+
+    repo_53c354b3 = {
+      name = "textus"
+    }
   }
 }
