@@ -135,5 +135,13 @@ locals {
     repo_53c354b3 = {
       name = "textus"
     }
+
+    repo_93cc756f = {
+      name = "obsidian-scoped-hotkey"
+      github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
+        pr_approver = local.github_app_token_presets.pr_approver
+      }
+    }
   }
 }
