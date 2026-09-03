@@ -143,5 +143,9 @@ locals {
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
+
+    repo_2e3c7ae0 = {
+      name = "skills-reconcile"
+    }
   }
 }
