@@ -146,6 +146,10 @@ locals {
 
     repo_2e3c7ae0 = {
       name = "skills-reconcile"
+      github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
+        pr_approver = local.github_app_token_presets.pr_approver
+      }
     }
   }
 }
