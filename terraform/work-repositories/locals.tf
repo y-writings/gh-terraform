@@ -151,5 +151,13 @@ locals {
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
+
+    repo_44de0a99 = {
+      name = "pr-diff-lens-action"
+      github_app_tokens = {
+        pr_creator  = local.github_app_token_presets.pr_creator
+        pr_approver = local.github_app_token_presets.pr_approver
+      }
+    }
   }
 }
