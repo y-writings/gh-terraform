@@ -20,5 +20,9 @@ locals {
       source_owner = "suzuki-shunsuke"
       source_repo  = "pinact"
     },
+    {
+      source_owner = "cursor"
+      source_repo  = "plugins"
+    },
   ]
 }
