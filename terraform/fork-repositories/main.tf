@@ -30,6 +30,8 @@ resource "github_repository" "fork" {
   source_owner = each.value.source_owner
   source_repo  = each.value.source_repo
 
+  delete_branch_on_merge = true
+
   lifecycle {
     prevent_destroy = true
 
