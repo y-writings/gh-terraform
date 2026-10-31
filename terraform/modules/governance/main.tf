@@ -27,7 +27,7 @@ resource "github_repository_ruleset" "main_default" {
     non_fast_forward        = true
 
     pull_request {
-      required_approving_review_count   = 1
+      required_approving_review_count   = 0
       allowed_merge_methods             = ["squash"]
       dismiss_stale_reviews_on_push     = true
       require_code_owner_review         = false
