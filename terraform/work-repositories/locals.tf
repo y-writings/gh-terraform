@@ -167,5 +167,9 @@ locals {
         pr_approver = local.github_app_token_presets.pr_approver
       }
     }
+
+    repo_ef59bd7a = {
+      name = "agent-metrics"
+    }
   }
 }
